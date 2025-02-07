@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SkillBridge</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Section (Branding) -->
+        <div class="left-section">
+            <div class="left-content">
+                <h1>SKILL-BRIDGE</h1>
+                <p>Connecting Talents With Opportunities</p>
+            </div>
+        </div>
+
+        <!-- Right Section (Login Form) -->
+        <div class="right-section">
+            <div class="form-box">
+                <h2>Login to Your Account</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Enter your email" required>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+
+                    <div class="options">
+                        <div class="remember-me-container">
+                            <input type="checkbox" id="remember-me">
+                            <label for="remember-me">Remember Me</label>
+                        </div>
+                        <a href="#">Forgot password?</a>
+                    </div>
+
+                    <button type="submit">Login</button>
+
+                    <p class="redirect-text">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>

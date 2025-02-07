@@ -1,0 +1,121 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Body */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Ensure body takes full viewport height */
+    width: 100%;  /* Ensure the body takes full viewport width */
+}
+
+/* Container */
+.container {
+    display: flex;
+    width: 100%;  /* Full width */
+    height: 100vh; /* Full height */
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Left Panel */
+.left-panel {
+    background: url('green.jpg') center/cover no-repeat;
+    opacity: 1;
+    color: rgb(71, 71, 71);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;  /* Set the left panel to take up 50% of the width */
+    padding: 20px;
+    font-size: 2.5em;  /* Increase the font size for bigger text */
+    font-weight: bold;
+    color: #ffffff;  /* Darker color */
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);  /* Stronger text shadow for better contrast */
+}
+.left-panel::before {
+    content: "";
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Dark overlay for readability */
+}
+
+/* Right Panel */
+.right-panel {
+    padding: 20px;
+    flex: 1;  /* Take the remaining space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Title */
+h1 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Paragraph */
+p {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    gap: 15px;
+}
+
+/* Role Buttons */
+.role-btn {
+    padding: 10px 20px;
+    border: none;
+    background-color: #2980b9;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.role-btn:hover {
+    background-color: #3498db;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        flex-direction: column;  /* Stack the panels vertically */
+    }
+
+    .left-panel, .right-panel {
+        width: 100%;  /* Ensure both panels take full width on smaller screens */
+    }
+
+    .left-panel {
+        padding: 10px;
+        font-size: 2em;
+    }
+
+    .role-btn {
+        width: 100%;  /* Full-width buttons on mobile */
+    }
+}
