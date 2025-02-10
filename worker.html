@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Dashboard</title>
+    <link rel="stylesheet" href="worker_styles.css">
+</head>
+<body>
+    <header>
+        <h1>Worker Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="#profile-section">Profile</a></li>
+                <li><a href="#jobs-section">Available Jobs</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="profile-section">
+            <h2>Create Your Profile</h2>
+            <form id="worker-profile-form">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Your Name" required>
+                
+                <label for="job">Preferred Job</label>
+                <input type="text" id="job" placeholder="Preferred Job" required>
+                
+                <label for="skills">Skills</label>
+                <input type="text" id="skills" placeholder="Skills (comma-separated)" required>
+                
+                <label for="location">Location</label>
+                <input type="text" id="location" placeholder="Location" required>
+                
+                <button type="submit">Save Profile</button>
+            </form>
+        </section>
+        
+        <section id="jobs-section">
+            <h2>Available Jobs</h2>
+            <div id="job-list"></div>
+        </section>
+    </main>
+    
+    <footer>
+        &copy; 2025 SkillBridge. All rights reserved.
+    </footer>
+    
+    <script src="worker_script.js"></script>
+</body>
+</html>
