@@ -1,83 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Get form and input elements
-    const signupForm = document.getElementById('signup-form');
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const phoneInput = document.getElementById('phone');
-    const signupButton = signupForm.querySelector('button');
-    const errorMessageElement = document.createElement('div'); // For dynamic error display
+document.addEventListener("DOMContentLoaded", function () {
+  const signupForm = document.getElementById("signup-form");
 
-    // Add error message container to the form (for better UX)
-    signupForm.appendChild(errorMessageElement);
+  signupForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
 
-    // Form submission event handler
-    signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();  // Prevent default form submission
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const phone = document.getElementById("phone").value;
 
-        // Remove any existing error messages
-        errorMessageElement.innerHTML = '';
+      try {
+          const response = await fetch("http://localhost:5000/api/signup", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name, email, password, phone }),
+          });
 
-        // Trim input values
-        const name = nameInput.value.trim();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-        const phone = phoneInput.value.trim();
+          const data = await response.json();
 
-        // Basic form validation with feedback
-        if (!name || !email || !password || !phone) {
-            showError('Please fill in all fields.');
-            return;
-        }
-
-        // Add spinner to button to show loading state
-        signupButton.disabled = true;
-        signupButton.innerHTML = 'Creating Account...';
-
-        // Prepare data for submission
-        const signupData = {
-            name: name,
-            email: email,
-            password: password,
-            phone: phone
-        };
-
-        try {
-            // Sending signup data to backend using Fetch API
-            const response = await fetch('http://localhost:5000/signup', {  // Update to your backend API URL
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(signupData)
-            });
-
-            const data = await response.json();
-
-            // Check for successful signup response
-            if (response.ok) {
-                // Display success message (optional)
-                alert(data.message || 'Signup successful! Redirecting to login page.');
-
-                // Redirect to login page after successful signup
-                window.location.href = '/login.html';  // Adjust this URL to your actual login page
-            } else {
-                // Display error message for signup failure
-                showError(data.message || 'There was an error creating your account.');
-            }
-        } catch (error) {
-            // Handle any server-side issues or network errors
-            showError('There was an error. Please try again later.');
-        } finally {
-            // Reset the form to its original state
-            signupButton.innerHTML = 'Sign Up';
-            signupButton.disabled = false;
-        }
-    });
-
-    // Function to show error messages
-    function showError(message) {
-        errorMessageElement.innerHTML = `<div class="error-message"><strong>Error:</strong> ${message}</div>`;
-        errorMessageElement.classList.add('visible');
-    }
+          if (response.ok) {
+              alert("Signup successful! Please login.");
+              window.location.href = "login.html"; // Redirect to login page
+          } else {
+              alert(data.message); // Show error message
+          }
+      } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred. Please try again.");
+      }
+  });
 });

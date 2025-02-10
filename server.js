@@ -1,107 +1,68 @@
-require('dotenv').config();
-const cors = require('cors');
-const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("./user");
 
 const app = express();
+const PORT = 5000;
+const JWT_SECRET = "your_jwt_secret"; // Change this to a secure key
 
-// Middleware setup
-app.use(cors()); // Allow cross-origin requests
-app.use(bodyParser.json()); // Parse incoming JSON requests
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// MongoDB connection
-const dbURI = process.env.MONGODB_URI;  // Get the connection string from .env
-mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log('Connected to MongoDB Atlas');
-  })
-  .catch((err) => {
-    logError('MongoDB Connection Error', err);
-  });
+// MongoDB Connection (Removed deprecated options)
+const MONGO_URI = "mongodb+srv://002anandbabu:anandbabu@cluster0.c161u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-// User model
-const User = require('./models/User');  // Ensure you have 'User.js' model with fields for email, password, name, etc.
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
+// User Signup Route
+app.post("/api/signup", async (req, res) => {
+    const { name, email, password, phone } = req.body;
 
-// Enhanced error logging function
-const logError = (message, error) => {
-  console.error(`[ERROR] ${message}:`, error.message);
-  console.error('Stack Trace:', error.stack);
-  // Here you can extend to log errors to a file or external logging service
-};
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email already in use" });
+        }
 
-// Login route
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ name, email, password: hashedPassword, phone });
+        await newUser.save();
 
-  try {
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+        res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET, // Ensure you have JWT_SECRET in .env
-      { expiresIn: '1h' }
-    );
-
-    res.status(200).json({ message: 'Login successful', token, role: user.role });
-  } catch (error) {
-    logError('Error during login', error);
-    res.status(500).json({ message: 'Server error. Please try again later.' });
-  }
 });
 
-// Signup route
-app.post('/signup', async (req, res) => {
-  const { name, email, password, phone, role } = req.body;
+// User Login Route
+app.post("/api/login", async (req, res) => {
+    const { email, password } = req.body;
 
-  try {
-    const existingUser = await User.findOne({ email });
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid email or password" });
+        }
 
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email is already in use' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid email or password" });
+        }
+
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+        res.json({ message: "Login successful", user, token });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
     }
-
-    const newUser = new User({
-      name,
-      email,
-      password,
-      phone,
-      role: role || 'worker',  // Default role is 'worker' if not provided
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    newUser.password = await bcrypt.hash(newUser.password, salt);
-
-    await newUser.save();
-
-    res.status(201).json({ message: 'User registered successfully. Please log in.' });
-  } catch (error) {
-    logError('Error during signup', error);
-    res.status(500).json({ message: 'Server error. Please try again later.' });
-  }
 });
 
-// Centralized Error Handler for unhandled errors
-app.use((err, req, res, next) => {
-  logError('Unhandled Error', err); // Log the full error details
-  res.status(500).json({ message: 'An unexpected error occurred. Please try again later.' });
-});
-
-// Server setup
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+// Start Server
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
