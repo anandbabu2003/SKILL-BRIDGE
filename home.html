@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBridge - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2e8cf;
+            color: #386641;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background-color: #386641;
+            color: white;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 80px 100px;
+            background-color: #6a994e;
+            color: white;
+        }
+        .hero-text {
+            max-width: 50%;
+        }
+        .hero-text h1 {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #f2e8cf;
+        }
+        .hero-text span {
+            color: #bc4749;
+        }
+        .hero-text p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #f2e8cf;
+        }
+        .hero img {
+            max-width: 40%;
+            height: auto;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            background-color: #bc4749;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #a73840;
+        }
+        .about {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 100px 100px;
+            background-color: #a7c957;
+            color: #f2e8cf;
+        }
+        .about-text {
+            max-width: 45%;
+            text-align: left;
+        }
+        .about-text h2 {
+            font-size: 36px;
+            color: #386641;
+            margin-bottom: 20px;
+        }
+        .about-text p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .about img {
+            max-width: 45%;
+            height: auto;
+        }
+        @media (max-width: 768px) {
+            .hero, .about {
+                flex-direction: column;
+                text-align: center;
+                padding: 50px;
+            }
+            .hero-text, .about-text {
+                max-width: 100%;
+            }
+            .hero img, .about img {
+                max-width: 80%;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SkillBridge</div>
+        <nav>
+            <ul>
+                <li><a href="#about">Why SkillBridge</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="signup.html">Signup</a></li>
+                <li><a href="login.html">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Be The Fastest In Getting <span>SkillBridge</span> at Your <span>Doorstep</span></h1>
+            <p>Our platform helps you find daily wage workers with ease. Fast, reliable, and efficient hiring at your convenience.</p>
+            <a href="#services" class="btn">Find Workers</a>
+            <a href="#jobs" class="btn">Find Jobs</a>
+        </div>
+        <img src="worker.png" alt="Worker Illustration">
+    </section>
+    
+    <section id="about" class="about">
+        <div class="about-text">
+            <h2>About SkillBridge</h2>
+            <p>Discover SkillBridge, your trusted partner in connecting daily wage workers with employers. Our platform ensures a seamless and efficient hiring process for both workers and businesses.</p>
+            <a href="#" class="btn">Get The App</a>
+        </div>
+        <img src="about-worker.png" alt="About Illustration">
+    </section>
+    
+    <script src="script.js"></script>
+</body>
+</html>
