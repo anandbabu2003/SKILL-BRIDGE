@@ -4,6 +4,8 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("./user");
+const Employer = require("./employer");
+const Worker = require("./worker");
 
 const app = express();
 const PORT = 5000;
@@ -13,7 +15,7 @@ const JWT_SECRET = "your_jwt_secret"; // Change this to a secure key
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection (Removed deprecated options)
+// MongoDB Connection
 const MONGO_URI = "mongodb+srv://002anandbabu:anandbabu@cluster0.c161u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(MONGO_URI)
@@ -56,121 +58,165 @@ app.post("/api/login", async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-        res.json({ message: "Login successful", user, token });
+
+        // Check if user is an employer
+        const employer = await Employer.findOne({ email });
+        if (employer) {
+            return res.json({ 
+                message: "Login successful", 
+                user, 
+                token, 
+                role: "employer", 
+                employerId: employer._id 
+            });
+        }
+
+        // Check if user is a worker
+        const worker = await Worker.findOne({ email });
+        if (worker) {
+            return res.json({ 
+                message: "Login successful", 
+                user, 
+                token, 
+                role: "worker", 
+                workerId: worker._id 
+            });
+        }
+
+        res.json({ message: "Login successful", user, token, role: "user" });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
 });
 
-const JobSchema = new mongoose.Schema({
-    title: String,
-    description: String,
-    location: String,
-    duration: Number,
-  });
-  
-  const WorkerSchema = new mongoose.Schema({
-    name: String,
-    job: String,
-    skills: [String],
-    location: String,
-    rating: { type: Number, default: 0 },
-    ratedBy: { type: Number, default: 0 },
-  });
-  
-  const ApplicationSchema = new mongoose.Schema({
-    jobId: mongoose.Schema.Types.ObjectId,
-    workerName: String,
-  });
-  
-  // Models
-  const Job = mongoose.model("Job", JobSchema);
-  const Worker = mongoose.model("Worker", WorkerSchema);
-  const Application = mongoose.model("Application", ApplicationSchema);
-  
-  // Routes
-  
-  // Post a Job
-  app.post("/jobs", async (req, res) => {
+/* ===================== Employer Routes ===================== */
+
+// Post a Job
+app.post("/api/employer/post-job", async (req, res) => {
+    const { employerId, jobType, location, duration } = req.body;
+
     try {
-      const newJob = new Job(req.body);
-      await newJob.save();
-      res.status(201).json({ message: "✅ Job posted successfully!" });
+        const employer = await Employer.findById(employerId);
+        if (!employer) return res.status(404).json({ message: "Employer not found" });
+
+        employer.jobPosts.push({ jobType, location, duration });
+        await employer.save();
+
+        res.status(201).json({ message: "Job posted successfully" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
-  
-  // Get All Posted Jobs
-  app.get("/jobs", async (req, res) => {
+});
+
+// Get Jobs Posted by Employer
+app.get("/api/employer/jobs/:employerId", async (req, res) => {
     try {
-      const jobs = await Job.find();
-      res.json(jobs);
+        const employer = await Employer.findById(req.params.employerId);
+        if (!employer) return res.status(404).json({ message: "Employer not found" });
+
+        res.json(employer.jobPosts);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
-  
-  // Search Workers by Location
-  app.get("/workers", async (req, res) => {
+});
+
+// Get Job Applications
+app.get("/api/employer/job-applications/:employerId", async (req, res) => {
     try {
-      const { location } = req.query;
-      const workers = await Worker.find({ location: new RegExp(location, "i") });
-      res.json(workers);
+        const employer = await Employer.findById(req.params.employerId).populate("jobPosts.applications");
+        if (!employer) return res.status(404).json({ message: "Employer not found" });
+
+        res.json(employer.jobPosts);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
-  
-  // Rate a Worker
-  app.post("/rate-worker", async (req, res) => {
+});
+
+// Send Proposal to Worker
+app.post("/api/employer/send-proposal", async (req, res) => {
+    const { employerId, workerId, jobDetails } = req.body;
+
     try {
-      const { name, rating } = req.body;
-      const worker = await Worker.findOne({ name });
-  
-      if (worker) {
-        worker.rating = ((worker.rating * worker.ratedBy) + rating) / (worker.ratedBy + 1);
-        worker.ratedBy += 1;
+        const employer = await Employer.findById(employerId);
+        const worker = await Worker.findById(workerId);
+
+        if (!employer || !worker) return res.status(404).json({ message: "Employer or Worker not found" });
+
+        employer.proposalsSent.push({ workerId, jobDetails });
+        worker.proposalsReceived.push({ employerId, jobDetails });
+
+        await employer.save();
         await worker.save();
-      } else {
-        await new Worker({ name, rating, ratedBy: 1 }).save();
-      }
-  
-      res.json({ message: "✅ Worker rated successfully!" });
+
+        res.json({ message: "Proposal sent successfully" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
-  
-  // Save Worker Profile
-  app.post("/workers", async (req, res) => {
+});
+
+/* ===================== Worker Routes ===================== */
+
+// Get Available Jobs
+app.get("/api/worker/jobs", async (req, res) => {
     try {
-      const worker = new Worker(req.body);
-      await worker.save();
-      res.status(201).json({ message: "✅ Profile saved successfully!" });
+        const employers = await Employer.find();
+        const jobs = employers.flatMap(emp => emp.jobPosts);
+        res.json(jobs);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
-  
-  // Worker applies for a job
-  app.post("/apply", async (req, res) => {
+});
+
+// Apply for a Job
+app.post("/api/worker/apply-job", async (req, res) => {
+    const { workerId, employerId, jobId } = req.body;
+
     try {
-      const { jobId, workerName } = req.body;
-  
-      // Check if the worker has already applied for this job
-      const existingApplication = await Application.findOne({ jobId, workerName });
-      if (existingApplication) {
-        return res.status(400).json({ message: "⚠️ You have already applied for this job!" });
-      }
-  
-      const application = new Application({ jobId, workerName });
-      await application.save();
-      res.json({ message: "✅ Job application submitted successfully!" });
+        const employer = await Employer.findById(employerId);
+        const worker = await Worker.findById(workerId);
+
+        if (!employer || !worker) return res.status(404).json({ message: "Employer or Worker not found" });
+
+        worker.jobApplications.push({ jobId, employerId, status: "Pending" });
+        await worker.save();
+
+        res.json({ message: "Job application submitted" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
-  });
+});
+
+// Get Worker Proposals
+app.get("/api/worker/proposals/:workerId", async (req, res) => {
+    try {
+        const worker = await Worker.findById(req.params.workerId).populate("proposalsReceived.employerId");
+        if (!worker) return res.status(404).json({ message: "Worker not found" });
+
+        res.json(worker.proposalsReceived);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Accept/Reject Proposal
+app.post("/api/worker/respond-proposal", async (req, res) => {
+    const { workerId, proposalId, status } = req.body;
+
+    try {
+        const worker = await Worker.findById(workerId);
+        if (!worker) return res.status(404).json({ message: "Worker not found" });
+
+        const proposal = worker.proposalsReceived.id(proposalId);
+        if (!proposal) return res.status(404).json({ message: "Proposal not found" });
+
+        proposal.status = status;
+        await worker.save();
+
+        res.json({ message: `Proposal ${status}` });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 // Start Server
 app.listen(PORT, () => {

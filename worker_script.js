@@ -1,80 +1,77 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const jobList = document.getElementById("job-list");
-    const profileForm = document.getElementById("worker-profile-form");
+const API_URL = "http://localhost:5000/api";
 
-    // Fetch available jobs from the backend
-    async function fetchJobs() {
-        try {
-            const response = await fetch("http://localhost:5000/jobs"); // Ensure this matches your backend route
-            const jobs = await response.json();
-            displayJobs(jobs);
-        } catch (error) {
-            console.error("Error fetching jobs:", error);
-        }
-    }
+// Function to switch between sections
+function showSection(sectionId) {
+    document.querySelectorAll(".section").forEach(section => {
+        section.style.display = "none";
+    });
+    document.getElementById(sectionId).style.display = "block";
+}
 
-    function displayJobs(jobs) {
-        jobList.innerHTML = "";
-        jobs.forEach(job => {
-            const jobDiv = document.createElement("div");
-            jobDiv.classList.add("job");
-            jobDiv.innerHTML = `
-                <h3>${job.title}</h3>
-                <p><strong>Location:</strong> ${job.location}</p>
-                <p><strong>Employer:</strong> ${job.employer || "Unknown"}</p>
-                <button class="apply-btn" onclick="applyForJob('${job._id}')">Apply</button>
-            `;
-            jobList.appendChild(jobDiv);
-        });
-    }
+// ====================== Worker Functionalities ====================== //
 
-    // Apply for a job
-    window.applyForJob = async function(jobId) {
-        try {
-            const workerName = localStorage.getItem("workerName");
-            if (!workerName) {
-                alert("Please create a profile first!");
-                return;
-            }
+// 1️⃣ Fetch Available Jobs
+async function fetchAvailableJobs() {
+    const response = await fetch(`${API_URL}/worker/jobs`);
+    const jobs = await response.json();
 
-            const response = await fetch("http://localhost:5000/apply", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ jobId, workerName }),
-            });
+    let jobList = document.getElementById("workerJobList");
+    jobList.innerHTML = "";
 
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error("Error applying for job:", error);
-        }
-    };
+    jobs.forEach(job => {
+        let listItem = document.createElement("li");
+        listItem.innerHTML = `${job.jobType} - ${job.location} - ${job.duration}`;
+        jobList.appendChild(listItem);
+    });
+}
 
-    // Save worker profile to the database
-    profileForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+// 2️⃣ Apply for a Job
+async function applyForJob(jobId, employerId) {
+    const workerId = localStorage.getItem("workerId");
 
-        const workerData = {
-            name: document.getElementById("name").value,
-            job: document.getElementById("job").value,
-            skills: document.getElementById("skills").value.split(",").map(skill => skill.trim()),
-            location: document.getElementById("location").value
-        };
-
-        try {
-            const response = await fetch("http://localhost:5000/workers", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(workerData),
-            });
-
-            const result = await response.json();
-            alert(result.message);
-            localStorage.setItem("workerName", workerData.name); // Save worker name for applications
-        } catch (error) {
-            console.error("Error saving profile:", error);
-        }
+    const response = await fetch(`${API_URL}/worker/apply-job`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId, employerId, jobId })
     });
 
-    fetchJobs(); // Load jobs on page load
+    const data = await response.json();
+    alert(data.message);
+}
+
+// 3️⃣ Fetch Worker Proposals
+async function fetchWorkerProposals() {
+    const workerId = localStorage.getItem("workerId");
+
+    const response = await fetch(`${API_URL}/worker/proposals/${workerId}`);
+    const proposals = await response.json();
+
+    let proposalList = document.getElementById("proposalList");
+    proposalList.innerHTML = "";
+
+    proposals.forEach(proposal => {
+        let listItem = document.createElement("li");
+        listItem.innerHTML = `Job: ${proposal.jobDetails.jobType} - Status: ${proposal.status}`;
+        proposalList.appendChild(listItem);
+    });
+}
+
+// 4️⃣ Accept/Reject Proposal
+async function respondToProposal(proposalId, status) {
+    const workerId = localStorage.getItem("workerId");
+
+    const response = await fetch(`${API_URL}/worker/respond-proposal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId, proposalId, status })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+// Call functions on page load
+document.addEventListener("DOMContentLoaded", () => {
+    fetchAvailableJobs();
+    fetchWorkerProposals();
 });
