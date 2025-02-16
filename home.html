@@ -4,62 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkillBridge - Home</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2e8cf;
-            color: #386641;
+            font-family: 'Georgia', serif;
+            background-color: #ffffff;
+            color: #1a3e1f;
             margin: 0;
             padding: 0;
+            transition: background-color 1s ease;
         }
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 50px;
-            background-color: #386641;
+            padding: 1.5rem 3rem;
+            background-color: #1a4d2e;
             color: white;
         }
         .logo {
-            font-size: 28px;
+            font-size: 1.5rem;
             font-weight: bold;
         }
         nav ul {
             list-style: none;
             display: flex;
-            gap: 30px;
+            gap: 2rem;
         }
         nav ul li a {
             text-decoration: none;
             color: white;
             font-weight: bold;
-            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+        nav ul li a:hover {
+            color: #a7e9af;
         }
         .hero {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 80px 100px;
-            background-color: #6a994e;
+            padding: 5rem 6rem;
+            background-color: #2d6a4f;
             color: white;
         }
         .hero-text {
             max-width: 50%;
         }
         .hero-text h1 {
-            font-size: 48px;
+            font-size: 2.5rem;
             font-weight: bold;
-            margin-bottom: 20px;
-            color: #f2e8cf;
+            margin-bottom: 1.25rem;
         }
         .hero-text span {
-            color: #bc4749;
+            color: #ffd166;
         }
         .hero-text p {
-            font-size: 18px;
-            margin-bottom: 30px;
-            color: #f2e8cf;
+            font-size: 1.125rem;
+            margin-bottom: 1.875rem;
         }
         .hero img {
             max-width: 40%;
@@ -67,38 +71,38 @@
         }
         .btn {
             display: inline-block;
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 0.9375rem 1.875rem;
+            font-size: 1.125rem;
             color: white;
-            background-color: #bc4749;
+            background-color: #ffd166;
             border: none;
-            border-radius: 5px;
+            border-radius: 0.3125rem;
             cursor: pointer;
             text-decoration: none;
+            transition: background-color 0.3s ease;
         }
         .btn:hover {
-            background-color: #a73840;
+            background-color: #e6bc5c;
         }
         .about {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 100px 100px;
-            background-color: #a7c957;
-            color: #f2e8cf;
+            padding: 6.25rem 6rem;
+            background-color: #f0f7f4;
+            color: #1a3e1f;
         }
         .about-text {
             max-width: 45%;
-            text-align: left;
         }
         .about-text h2 {
-            font-size: 36px;
-            color: #386641;
-            margin-bottom: 20px;
+            font-size: 2.25rem;
+            color: #1a4d2e;
+            margin-bottom: 1.25rem;
         }
         .about-text p {
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 1.125rem;
+            margin-bottom: 1.25rem;
         }
         .about img {
             max-width: 45%;
@@ -108,14 +112,14 @@
             .hero, .about {
                 flex-direction: column;
                 text-align: center;
-                padding: 50px;
+                padding: 3.125rem;
             }
             .hero-text, .about-text {
                 max-width: 100%;
             }
             .hero img, .about img {
                 max-width: 80%;
-                margin-top: 20px;
+                margin-top: 1.25rem;
             }
         }
     </style>
@@ -125,8 +129,6 @@
         <div class="logo">SkillBridge</div>
         <nav>
             <ul>
-                <li><a href="#about">Why SkillBridge</a></li>
-                <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="signup.html">Signup</a></li>
                 <li><a href="login.html">Login</a></li>
@@ -138,8 +140,7 @@
         <div class="hero-text">
             <h1>Be The Fastest In Getting <span>Skilled Workers</span> at Your <span>Doorstep</span></h1>
             <p>Our platform helps you find daily wage workers with ease. Fast, reliable, and efficient hiring at your convenience.</p>
-            <a href="#services" class="btn">Find Workers</a>
-            <a href="#jobs" class="btn">Find Jobs</a>
+            <a href="signup.html" class="btn">Get Started</a>
         </div>
         <img src="worker.png" alt="Worker Illustration">
     </section>
@@ -148,11 +149,34 @@
         <div class="about-text">
             <h2>About SkillBridge</h2>
             <p>Discover SkillBridge, your trusted partner in connecting daily wage workers with employers. Our platform ensures a seamless and efficient hiring process for both workers and businesses.</p>
-            <a href="#" class="btn">Get The App</a>
         </div>
         <img src="about-worker.png" alt="About Illustration">
     </section>
     
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const aboutSection = document.getElementById('about');
+            const body = document.body;
+
+            const isElementInViewport = (el) => {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.bottom >= 0
+                );
+            };
+
+            const handleScroll = () => {
+                if (isElementInViewport(aboutSection)) {
+                    body.style.backgroundColor = '#f0f7f4';
+                } else {
+                    body.style.backgroundColor = '#ffffff';
+                }
+            };
+
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Call once to set initial state
+        });
+    </script>
 </body>
 </html>
