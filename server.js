@@ -14,6 +14,7 @@ const JWT_SECRET = "your_jwt_secret"; // Change this to a secure key
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname)); // Serve static files from the root directory
 
 // MongoDB Connection
 const MONGO_URI = "mongodb+srv://002anandbabu:anandbabu@cluster0.c161u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
@@ -21,6 +22,13 @@ const MONGO_URI = "mongodb+srv://002anandbabu:anandbabu@cluster0.c161u.mongodb.n
 mongoose.connect(MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("MongoDB connection error:", err));
+
+// Serve home.html for the root URL
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/home.html");
+});
+
+
 
 // User Signup Route
 app.post("/api/signup", async (req, res) => {
