@@ -3,179 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillBridge - Home</title>
+    <title>SkillBridge - Connecting Employers & Workers</title>
     <style>
-        html {
-            scroll-behavior: smooth;
+        :root {
+            --color-light-gray: #cad2c5;
+            --color-sage: #84a98c;
+            --color-medium-green: #52796f;
+            --color-dark-green: #354f52;
+            --color-darkest-green: #2f3e46;
         }
-        body {
-            font-family: 'Georgia', serif;
-            background-color: #ffffff;
-            color: #1a3e1f;
+
+        * {
             margin: 0;
             padding: 0;
-            transition: background-color 1s ease;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        header {
+
+        body {
+            background-color: var(--color-light-gray);
+            color: var(--color-darkest-green);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: var(--color-darkest-green);
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+
+        .navbar.scrolled {
+            background-color: rgba(47, 62, 70, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 3rem;
-            background-color: #1a4d2e;
-            color: white;
+            max-width: 1200px;
+            margin: 0 auto;
         }
+
         .logo {
-            font-size: 1.5rem;
+            font-size: 24px;
             font-weight: bold;
-        }
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
-        }
-        nav ul li a {
+            color: var(--color-light-gray);
             text-decoration: none;
-            color: white;
-            font-weight: bold;
-            transition: color 0.3s ease;
         }
-        nav ul li a:hover {
-            color: #a7e9af;
-        }
-        .hero {
+
+        .nav-buttons {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5rem 6rem;
-            background-color: #2d6a4f;
-            color: white;
+            gap: 20px;
         }
-        .hero-text {
-            max-width: 50%;
-        }
-        .hero-text h1 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 1.25rem;
-        }
-        .hero-text span {
-            color: #ffd166;
-        }
-        .hero-text p {
-            font-size: 1.125rem;
-            margin-bottom: 1.875rem;
-        }
-        .hero img {
-            max-width: 40%;
-            height: auto;
-        }
+
         .btn {
-            display: inline-block;
-            padding: 0.9375rem 1.875rem;
-            font-size: 1.125rem;
-            color: white;
-            background-color: #ffd166;
+            padding: 10px 20px;
+            border-radius: 5px;
             border: none;
-            border-radius: 0.3125rem;
             cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
-        .btn:hover {
-            background-color: #e6bc5c;
+
+        .btn-login {
+            background-color: transparent;
+            color: var(--color-light-gray);
+            border: 1px solid var(--color-light-gray);
         }
-        .about {
+
+        .btn-login:hover {
+            background-color: var(--color-light-gray);
+            color: var(--color-darkest-green);
+        }
+
+        .btn-signup {
+            background-color: var(--color-medium-green);
+            color: white;
+        }
+
+        .btn-signup:hover {
+            background-color: var(--color-dark-green);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 6.25rem 6rem;
-            background-color: #f0f7f4;
-            color: #1a3e1f;
+            justify-content: center;
+            background: linear-gradient(rgba(47, 62, 70, 0.8), rgba(47, 62, 70, 0.8)),
+                        url('/api/placeholder/1920/1080');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 0 20px;
         }
-        .about-text {
-            max-width: 45%;
+
+        .hero-content {
+            max-width: 800px;
         }
-        .about-text h2 {
-            font-size: 2.25rem;
-            color: #1a4d2e;
-            margin-bottom: 1.25rem;
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease;
         }
-        .about-text p {
-            font-size: 1.125rem;
-            margin-bottom: 1.25rem;
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--color-light-gray);
+            animation: fadeInUp 1s ease 0.2s;
+            animation-fill-mode: both;
         }
-        .about img {
-            max-width: 45%;
-            height: auto;
+
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            background-color: white;
         }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background-color: var(--color-light-gray);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--color-medium-green);
+            margin-bottom: 20px;
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 80px 20px;
+            background-color: var(--color-darkest-green);
+            color: white;
+        }
+
+        .steps-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step-number {
+            background-color: var(--color-medium-green);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            padding: 80px 20px;
+            background-color: white;
+        }
+
+        .testimonial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 30px;
+            overflow-x: auto;
+            padding: 20px 0;
+            scroll-snap-type: x mandatory;
+        }
+
+        .testimonial-card {
+            background-color: var(--color-light-gray);
+            padding: 30px;
+            border-radius: 10px;
+            min-width: 300px;
+            scroll-snap-align: start;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--color-darkest-green);
+            color: var(--color-light-gray);
+            padding: 40px 20px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .hero, .about {
-                flex-direction: column;
-                text-align: center;
-                padding: 3.125rem;
+            .hero h1 {
+                font-size: 2rem;
             }
-            .hero-text, .about-text {
-                max-width: 100%;
+            
+            .hero p {
+                font-size: 1rem;
             }
-            .hero img, .about img {
-                max-width: 80%;
-                margin-top: 1.25rem;
+            
+            .features-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">SkillBridge</div>
-        <nav>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="signup.html">Signup</a></li>
-                <li><a href="login.html">Login</a></li>
-            </ul>
-        </nav>
-    </header>
-    
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="#" class="logo">SkillBridge</a>
+            <div class="nav-buttons">
+                <button class="btn btn-login">Login</button>
+                <button class="btn btn-signup">Sign Up</button>
+            </div>
+        </div>
+    </nav>
+
     <section class="hero">
-        <div class="hero-text">
-            <h1>Be The Fastest In Getting <span>Skilled Workers</span> at Your <span>Doorstep</span></h1>
-            <p>Our platform helps you find daily wage workers with ease. Fast, reliable, and efficient hiring at your convenience.</p>
-            <a href="signup.html" class="btn">Get Started</a>
+        <div class="hero-content">
+            <h1>SkillBridge – Bridging the Gap Between Employers & Workers</h1>
+            <p>SkillBridge is a dynamic platform designed to seamlessly connect employers with skilled daily wage workers. Our mission is to simplify the hiring process by providing a fast, reliable, and accessible solution for both job seekers and businesses.</p>
+            <button class="btn btn-signup">Get Started</button>
         </div>
-        <img src="worker.png" alt="Worker Illustration">
     </section>
-    
-    <section id="about" class="about">
-        <div class="about-text">
-            <h2>About SkillBridge</h2>
-            <p>Discover SkillBridge, your trusted partner in connecting daily wage workers with employers. Our platform ensures a seamless and efficient hiring process for both workers and businesses.</p>
+
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Quick Matching</h3>
+                <p>Find the right workers or jobs instantly with our smart matching system</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3>Verified Profiles</h3>
+                <p>All workers and employers are verified for your safety and security</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💼</div>
+                <h3>Instant Hiring</h3>
+                <p>Streamlined process to hire workers within hours, not days</p>
+            </div>
         </div>
-        <img src="about-worker.png" alt="About Illustration">
     </section>
-    
+
+    <section class="how-it-works">
+        <div class="steps-container">
+            <h2>How It Works</h2>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Create Your Profile</h3>
+                    <p>Sign up and create your detailed profile in minutes</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Find Opportunities</h3>
+                    <p>Browse through available jobs or workers in your area</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Connect & Work</h3>
+                    <p>Start working together with secure payment handling</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="testimonial-container">
+            <div class="testimonial-card">
+                <p class="testimonial-text">"SkillBridge has transformed how I find work. The platform is easy to use and I get regular job opportunities."</p>
+                <p class="testimonial-author">- John D., Construction Worker</p>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"As an employer, finding reliable workers has never been easier. The verification system gives me peace of mind."</p>
+                <p class="testimonial-author">- Sarah M., Business Owner</p>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"The quick matching system helps me find jobs that match my skills perfectly. Highly recommended!"</p>
+                <p class="testimonial-author">- Mike R., Skilled Worker</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <h3>SkillBridge</h3>
+                <p>Building a stronger workforce, one job at a time!</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li>About Us</li>
+                    <li>How It Works</li>
+                    <li>Contact</li>
+                    <li>Support</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact Us</h4>
+                <p>Email: info@skillbridge.com</p>
+                <p>Phone: (555) 123-4567</p>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const aboutSection = document.getElementById('about');
-            const body = document.body;
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
 
-            const isElementInViewport = (el) => {
-                const rect = el.getBoundingClientRect();
-                return (
-                    rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
-                    rect.bottom >= 0
-                );
-            };
+        // Animate steps on scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3
+        };
 
-            const handleScroll = () => {
-                if (isElementInViewport(aboutSection)) {
-                    body.style.backgroundColor = '#f0f7f4';
-                } else {
-                    body.style.backgroundColor = '#ffffff';
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
                 }
-            };
+            });
+        }, observerOptions);
 
-            window.addEventListener('scroll', handleScroll);
-            handleScroll(); // Call once to set initial state
+        document.querySelectorAll('.step').forEach(step => {
+            observer.observe(step);
+        });
+
+        // Button click handlers
+        document.querySelectorAll('.btn-login').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.href = 'login.html';
+            });
+        });
+
+        document.querySelectorAll('.btn-signup').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.href = 'signup.html';
+            });
         });
     </script>
 </body>
