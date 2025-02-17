@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Dashboard</title>
+    <style>
+        :root {
+            --color-lightest: #cad2c5;
+            --color-light: #84a98c;
+            --color-medium: #52796f;
+            --color-dark: #354f52;
+            --color-darkest: #2f3e46;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-lightest);
+            color: var(--color-darkest);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background-color: var(--color-darkest);
+            color: var(--color-lightest);
+            padding: 2rem 1rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .sidebar-menu li {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-menu li:hover {
+            background-color: var(--color-dark);
+        }
+
+        .sidebar-menu li.active {
+            background-color: var(--color-medium);
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: var(--color-medium);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-dark);
+        }
+
+        .jobs-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .job-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .job-card h3 {
+            color: var(--color-dark);
+            margin-bottom: 1rem;
+        }
+
+        .job-card .details {
+            margin-bottom: 1rem;
+        }
+
+        .job-card .details p {
+            margin: 0.5rem 0;
+            color: var(--color-medium);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--color-medium);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-dark);
+        }
+
+        .notifications {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+
+        .notification {
+            background-color: var(--color-dark);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .profile-section {
+            display: none;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--color-light);
+        }
+
+        .search-bar {
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--color-light);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content h2 {
+            color: var(--color-dark);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content .job-details {
+            margin-bottom: 1rem;
+        }
+
+        .modal-content .job-details p {
+            margin: 0.5rem 0;
+            color: var(--color-medium);
+        }
+
+        .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .profile-details h3 {
+            color: var(--color-medium);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-details p {
+            margin: 0.5rem 0;
+            color: var(--color-dark);
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>Skill Bridge</h2>
+            <ul class="sidebar-menu">
+                <li class="active" data-section="dashboard">Dashboard</li>
+                <li data-section="jobs">Find Jobs</li>
+                <li data-section="applications">Applications</li>
+                <li data-section="profile">Profile</li>
+                <li data-section="messages">Messages</li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <section id="dashboard-section">
+                <h1 class="welcome-text">Welcome, Worker!</h1>
+
+                <div class="stats-grid" style="margin-top: 2rem;">
+                    <div class="stat-card">
+                        <h3>Active Applications</h3>
+                        <div class="number">12</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Completed Jobs</h3>
+                        <div class="number">45</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Earnings</h3>
+                        <div class="number">$2,450</div>
+                    </div>
+                </div>
+
+                <h2>Recent Jobs</h2>
+                <div class="jobs-list" id="recent-jobs">
+                    <!-- Recent jobs will be dynamically populated here -->
+                </div>
+            </section>
+
+            <section id="jobs-section" class="jobs-section" style="display: none;">
+                <h2>Find Jobs</h2>
+                <div class="jobs-list" id="unfilled-jobs">
+                    <!-- Unfilled jobs will be dynamically populated here -->
+                </div>
+            </section>
+
+            <section id="applications-section" class="applications-section" style="display: none;">
+                <h2>Applications</h2>
+                <div class="jobs-list" id="user-jobs">
+                    <!-- User jobs will be dynamically populated here -->
+                </div>
+            </section>
+
+            <section id="profile-section" class="profile-section" style="display: none;">
+                <div class="profile-header">
+                    <div class="profile-pic"></div>
+                    <div>
+                        <h2 id="profile-name">John Doe</h2>
+                        <p id="profile-rating">Construction Worker | 4.8 ★</p>
+                    </div>
+                </div>
+                <div class="profile-details">
+                    <h3>Email Address</h3>
+                    <p id="profile-email"></p>
+                    <br>
+                    <h3>Phone Number</h3>
+                    <p id="profile-phone"></p>
+                    <br>
+                    <h3>Skills</h3>
+                    <p id="profile-skills">Construction, Painting, Plumbing</p>
+
+                    <h3>Experience</h3>
+                    <p id="profile-experience">5 years in construction</p>
+
+                    <h3>Availability</h3>
+                    <p id="profile-availability">Monday to Saturday, 8 AM - 5 PM</p>
+                </div>
+            </section>
+
+            <div class="modal" id="job-modal">
+                <div class="modal-content">
+                    <span class="close"
+                        onclick="document.getElementById('job-modal').style.display = 'none'">&times;</span>
+                    <h2>Job Details</h2>
+                    <div class="job-details">
+                        <p><strong>Title:</strong> <span id="job-title"></span></p>
+                        <p><strong>Location:</strong> <span id="job-location"></span></p>
+                        <p><strong>Duration:</strong> <span id="job-duration"></span></p>
+                        <p><strong>Wage:</strong> <span id="job-wage"></span></p>
+                        <p><strong>Skills Required:</strong> <span id="job-skills"></span></p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="notifications" id="notifications"></div>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.sidebar-menu li').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all items
+                document.querySelectorAll('.sidebar-menu li').forEach(i => {
+                    i.classList.remove('active');
+                });
+                // Add active class to clicked item
+                item.classList.add('active');
+
+                // Show the corresponding section
+                const sectionId = `${item.getAttribute('data-section')}-section`;
+                document.querySelectorAll('main section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(sectionId).style.display = 'block';
+
+                // Fetch and display data based on the section
+                if (sectionId === 'jobs-section') {
+                    fetchUnfilledJobs();
+                } else if (sectionId === 'applications-section') {
+                    fetchUserJobs();
+                } else if (sectionId === 'profile-section') {
+                    fetchUserProfile();
+                }
+
+                // Show notification
+                showNotification(`Navigated to ${item.textContent}`);
+            });
+        });
+
+        // Notification system
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+
+            document.getElementById('notifications').appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('btn-primary')) {
+                const jobTitle = event.target.parentElement.querySelector('h3').textContent;
+                const jobID = event.target.parentElement.querySelector('h6').textContent;
+                showNotification(`Applied for ${jobTitle}`);
+                event.target.textContent = 'Applied';
+                event.target.disabled = true;
+
+                fetch('/api/apply_job', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: localStorage.getItem('email'),
+                        job_id: jobID
+                    })
+                });
+            }
+        });
+
+        async function fetchUnfilledJobs() {
+            try {
+                const response = await fetch('/api/jobs/unapplied?email=' + localStorage.getItem('email'));
+                const jobs = await response.json();
+                const jobsList = document.getElementById('unfilled-jobs');
+                jobsList.innerHTML = '<div style="margin-top: 2rem;"></div>';
+                jobs.forEach(job => {
+                    const jobCard = document.createElement('div');
+                    jobCard.classList.add('job-card');
+                    jobCard.innerHTML = `
+                        <h3>${job.title}</h3>
+                        <h6>${job.job_id}</h6>
+                        <div class="details">
+                            <p>Location: ${job.location}</p>
+                            <p>Duration: ${job.duration}</p>
+                            <p>Pay: $${job.daily_wage}/day</p>
+                        </div>
+                        <button class="btn btn-primary">Apply Now</button>
+                    `;
+                    jobsList.appendChild(jobCard);
+                });
+            } catch (error) {
+                console.error('Error fetching unfilled jobs:', error);
+            }
+        }
+
+        async function fetchUserJobs() {
+            const email = localStorage.getItem('email');
+            try {
+                const response = await fetch(`/api/user_jobs?email=${email}`);
+                const jobs = await response.json();
+                const jobsList = document.getElementById('user-jobs');
+                jobsList.innerHTML = '<div style="margin-top: 2rem;"></div>';
+                jobs.forEach(job => {
+                    const jobCard = document.createElement('div');
+                    jobCard.classList.add('job-card');
+                    jobCard.innerHTML = `
+                        <h3>${job.title}</h3>
+                        <h6>${job.job_id}</h6>
+                        <div class="details">
+                            <p>Location: ${job.location}</p>
+                            <p>Duration: ${job.duration}</p>
+                            <p>Pay: $${job.daily_wage}/day</p>
+                            <p>Skills Required: ${job.skills.join(', ')}</p>
+                        </div>
+                        <div name="button-group">
+                            <button class="btn btn-primary">${job.assigned ? 'Assigned' : 'Pending'}</button>
+                            <button class="btn btn-primary" onclick="cancelJob('${job.job_id}')">Cancel</button>
+                        </div>
+                    `;
+                    jobsList.appendChild(jobCard);
+                });
+            } catch (error) {
+                console.error('Error fetching user jobs:', error);
+            }
+        }
+
+        async function cancelJob(jobID) {
+            try {
+                const response = await fetch('/api/cancel_job', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: localStorage.getItem('email'),
+                        job_id: jobID
+                    })
+                });
+                const data = await response.json();
+                showNotification('Job application cancelled');
+            } catch (error) {
+                console.error('Error cancelling job:', error);
+            }
+        }
+
+        async function fetchUserProfile() {
+            const email = localStorage.getItem('email');
+            try {
+                const response = await fetch(`/api/user?email=${email}`);
+                const user = await response.json();
+                document.getElementById('profile-name').textContent = user.name
+                document.getElementById('profile-rating').textContent = `${user.type} ---> 5 ★`;
+                document.getElementById('profile-email').textContent = user.email;
+                document.getElementById('profile-phone').textContent = user.phone_no;
+                document.getElementById('profile-skills').textContent = user.skills;
+                document.getElementById('profile-experience').textContent = user.experience;
+                document.getElementById('profile-availability').textContent = user.availability;
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        }
+
+        async function fetchRecentJobs() {
+            try {
+                const response = await fetch('/api/user_jobs_filled?email=' + localStorage.getItem('email'));
+                const jobs = await response.json();
+                const jobsList = document.getElementById('recent-jobs');
+                jobsList.innerHTML = '<div style="margin-top: 2rem;"></div>';
+                jobs.forEach(job => {
+                    const jobCard = document.createElement('div');
+                    jobCard.classList.add('job-card');
+                    jobCard.innerHTML = `
+                        <h3>${job.title}</h3>
+                        <div class="details">
+                            <p>Location: ${job.location}</p>
+                            <p>Duration: ${job.duration}</p>
+                            <p>Pay: $${job.daily_wage}/day</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('${job.job_id}')">View Details</button>
+                    `;
+                    jobsList.appendChild(jobCard);
+                });
+            } catch (error) {
+                console.error('Error fetching recent jobs:', error);
+            }
+        }
+
+        async function openModal(jobID) {
+            const response = await fetch('/api/job?id=' + jobID);
+            const job = await response.json();
+            document.getElementById('job-title').textContent = job.title;
+            document.getElementById('job-location').textContent = job.location;
+            document.getElementById('job-duration').textContent = job.duration;
+            document.getElementById('job-wage').textContent = `$${job.daily_wage}/day`;
+            document.getElementById('job-skills').textContent = job.skills.join(', ');
+            document.getElementById('job-modal').style.display = 'block';
+        }
+
+        fetchRecentJobs();
+    </script>
+</body>
+
+</html>
