@@ -6,14 +6,18 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-client = MongoClient("mongodb+srv://user:user@cluster0.c161u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(
+    "mongodb+srv://user:user@cluster0.c161u.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+)
 db = client["job_portal"]
 users_collection = db["users"]
 jobs_collection = db["jobs"]
 
+
 @app.route("/<path:filename>")
 def serve_assets(filename):
     return send_from_directory("assets", filename)
+
 
 @app.route("/api/signup", methods=["POST"])
 def signup():
@@ -26,10 +30,11 @@ def signup():
         "email": email,
         "password_hash": generate_password_hash(data.get("password")),
         "phone_no": data.get("phone"),
-        "type": data.get("role")
+        "type": data.get("role"),
     }
     users_collection.insert_one(user)
     return jsonify({"message": "User registered successfully"})
+
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -42,15 +47,19 @@ def login():
     del user["_id"]
     return jsonify({"message": "Login successful", "user": user})
 
+
 @app.route("/api/set_user_type", methods=["POST"])
 def set_user_type():
     data = request.json
     email = data.get("mail")
     user_type = data.get("type")
-    result = users_collection.update_one({"email": email}, {"$set": {"type": user_type}})
+    result = users_collection.update_one(
+        {"email": email}, {"$set": {"type": user_type}}
+    )
     if result.matched_count == 0:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"message": "User type updated"})
+
 
 @app.route("/api/new_job", methods=["POST"])
 def new_job():
@@ -66,10 +75,11 @@ def new_job():
         "assigned": False,
         "assigned_mail": None,
         "posted_on": datetime.now(),
-        "applicants": []
+        "applicants": [],
     }
     job_id = jobs_collection.insert_one(job).inserted_id
     return jsonify({"message": "Job posted successfully", "job_id": str(job_id)})
+
 
 @app.route("/api/jobs", methods=["GET"])
 def get_all_jobs():
@@ -77,6 +87,7 @@ def get_all_jobs():
     for job in jobs:
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
+
 
 @app.route("/api/jobs/unfilled", methods=["GET"])
 def get_unfilled_jobs():
@@ -86,6 +97,7 @@ def get_unfilled_jobs():
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
 
+
 @app.route("/api/jobs/unapplied", methods=["GET"])
 def get_unapplied_jobs():
     email = request.args.get("email")
@@ -93,6 +105,7 @@ def get_unapplied_jobs():
     for job in jobs:
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
+
 
 @app.route("/api/jobs/filled", methods=["GET"])
 def get_filled_jobs():
@@ -102,6 +115,7 @@ def get_filled_jobs():
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
 
+
 @app.route("/api/user_jobs", methods=["GET"])
 def get_user_jobs():
     email = request.args.get("email")
@@ -109,6 +123,7 @@ def get_user_jobs():
     for job in jobs:
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
+
 
 @app.route("/api/user_jobs_filled", methods=["GET"])
 def get_user_jobs_filled():
@@ -118,6 +133,7 @@ def get_user_jobs_filled():
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
 
+
 @app.route("/api/employee_jobs", methods=["GET"])
 def get_employee_jobs():
     email = request.args.get("email")
@@ -126,20 +142,32 @@ def get_employee_jobs():
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
 
+
 @app.route("/api/employee_job_unassigned", methods=["GET"])
 def get_employee_job_unassigned():
     email = request.args.get("email")
     results = []
-    jobs = list(jobs_collection.find({"email": email, "assigned": False, "assigned_mail": None}))
+    jobs = list(
+        jobs_collection.find({"email": email, "assigned": False, "assigned_mail": None})
+    )
     for job in jobs:
         if len(job.get("applicants", [])) == 0:
             del jobs[jobs.index(job)]
         else:
             for applicant in job["applicants"]:
-                appl = users_collection.find_one({"email": applicant}, {"_id": 0, "password_hash": 0})
-                result = {"job_id": str(job["_id"]), "title": job["title"], "email": applicant, "name": appl["name"], "assigned": False}
+                appl = users_collection.find_one(
+                    {"email": applicant}, {"_id": 0, "password_hash": 0}
+                )
+                result = {
+                    "job_id": str(job["_id"]),
+                    "title": job["title"],
+                    "email": applicant,
+                    "name": appl["name"],
+                    "assigned": False,
+                }
                 results.append(result)
     return jsonify(results)
+
 
 @app.route("/api/job", methods=["GET"])
 def get_job_info():
@@ -149,6 +177,7 @@ def get_job_info():
         return jsonify({"error": "Job not found"}), 404
     return jsonify(job)
 
+
 @app.route("/api/delete_job", methods=["POST"])
 def delete_job():
     job_id = request.json.get("id")
@@ -157,14 +186,18 @@ def delete_job():
         return jsonify({"error": "Job not found"}), 404
     return jsonify({"message": "Job deleted successfully"})
 
+
 @app.route("/api/cancel_job", methods=["POST"])
 def cancel_job():
     job_id = request.json.get("job_id")
     email = request.json.get("email")
-    result = jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$pull": {"applicants": email}})
+    result = jobs_collection.update_one(
+        {"_id": ObjectId(job_id)}, {"$pull": {"applicants": email}}
+    )
     if result.matched_count == 0:
         return jsonify({"error": "Job not found"}), 404
     return jsonify({"message": "Job application cancelled"})
+
 
 @app.route("/api/user", methods=["GET"])
 def get_user_info():
@@ -174,25 +207,33 @@ def get_user_info():
         return jsonify({"error": "User not found"}), 404
     return jsonify(user)
 
+
 @app.route("/api/apply_job", methods=["POST"])
 def apply_job():
     data = request.json
     job_id = data.get("job_id")
     email = data.get("email")
-    result = jobs_collection.update_one({"_id": ObjectId(job_id), "assigned": False, "assigned_mail": None}, {"$push": {"applicants": email}})
+    result = jobs_collection.update_one(
+        {"_id": ObjectId(job_id), "assigned": False, "assigned_mail": None},
+        {"$push": {"applicants": email}},
+    )
     if result.matched_count == 0:
         return jsonify({"error": "Job not found or already assigned"}), 404
     return jsonify({"message": "Job applied successfully"})
+
 
 @app.route("/api/assign_job", methods=["POST"])
 def assign_job():
     data = request.json
     job_id = data.get("job_id")
     email = data.get("email")
-    result = jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$set": {"assigned": True, "assigned_mail": email}})
+    result = jobs_collection.update_one(
+        {"_id": ObjectId(job_id)}, {"$set": {"assigned": True, "assigned_mail": email}}
+    )
     if result.matched_count == 0:
         return jsonify({"error": "Job not found"}), 404
     return jsonify({"message": "Job assigned successfully"})
+
 
 @app.route("/api/employer_stats", methods=["GET"])
 def employer_stats():
@@ -200,6 +241,7 @@ def employer_stats():
     jobs_posted = jobs_collection.count_documents({"email": email})
     jobs_filled = jobs_collection.count_documents({"email": email, "assigned": True})
     return jsonify({"jobs_posted": jobs_posted, "jobs_filled": jobs_filled})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
