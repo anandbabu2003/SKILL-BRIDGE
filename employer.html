@@ -69,6 +69,33 @@
             color: var(--color-light-gray);
         }
 
+        /* Emergency Button Styles */
+        .emergency-button {
+            background-color: #d62828;
+            color: var(--color-light-gray);
+            padding: 12px 15px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .emergency-button:hover {
+            background-color: #bc2626;
+        }
+
+        .emergency-icon {
+            width: 16px;
+            height: 16px;
+        }
+
         /* Main Content Styles */
         .main-content {
             padding: 30px;
@@ -148,7 +175,53 @@
             background-color: var(--color-dark-green);
         }
 
-        /* Job Listings Table */
+        /* Review System Styles */
+        .rating-stars {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .star-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--color-sage);
+        }
+
+        .star-button.active {
+            color: var(--color-medium-green);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--color-darkest-green);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--color-sage);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-medium-green);
+            box-shadow: 0 0 0 2px rgba(82, 121, 111, 0.1);
+        }
+
+        /* Table Styles */
         .table {
             width: 100%;
             border-collapse: collapse;
@@ -184,107 +257,62 @@
             color: var(--color-light-gray);
         }
 
-        .status-expired {
-            background-color: var(--color-light-gray);
-            color: var(--color-darkest-green);
-        }
-
-        /* Job Post Form */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--color-darkest-green);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--color-sage);
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--color-darkest-green);
+            color: var(--color-light-gray);
             border-radius: 6px;
-            font-size: 14px;
-            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--color-medium-green);
-            box-shadow: 0 0 0 2px rgba(82, 121, 111, 0.1);
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
         }
 
-        /* Messages Section */
-        .messages-container {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-        }
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
 
-        .message-list {
-            border: 1px solid var(--color-sage);
-            border-radius: 6px;
-            height: 400px;
-            overflow-y: auto;
-            background-color: white;
-        }
+            .sidebar {
+                display: none;
+            }
 
-        .message-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--color-light-gray);
-            cursor: pointer;
-        }
+            .sidebar.active {
+                display: block;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 250px;
+                z-index: 1000;
+            }
 
-        .message-item:hover {
-            background-color: var(--color-light-gray);
-        }
+            .main-content {
+                padding: 15px;
+            }
 
-        .message-content {
-            border: 1px solid var(--color-sage);
-            border-radius: 6px;
-            height: 400px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            background-color: white;
-        }
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
 
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .chat-input {
-            display: flex;
-            gap: 10px;
-            padding-top: 20px;
-            border-top: 1px solid var(--color-light-gray);
-        }
-
-        .chat-input input {
-            flex-grow: 1;
-        }
-
-        /* Additional Hover Effects */
-        .stat-card:hover {
-            transform: translateY(-2px);
-            transition: transform 0.3s ease;
-            box-shadow: 0 4px 6px rgba(47, 62, 70, 0.15);
-        }
-
-        .message-item strong {
-            color: var(--color-dark-green);
-        }
-
-        .table tr:hover {
-            background-color: rgba(132, 169, 140, 0.1);
+            .table {
+                display: block;
+                overflow-x: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- The rest of the HTML and JavaScript code remains exactly the same as in the previous version -->
     <div class="container">
         <aside class="sidebar">
             <div class="logo">Skill Bridge</div>
@@ -294,17 +322,27 @@
                 <li class="nav-item" data-section="manage-jobs">Manage Jobs</li>
                 <li class="nav-item" data-section="applications">Applications</li>
                 <li class="nav-item" data-section="messages">Messages</li>
+                <button class="emergency-button" data-section="emergency">
+                    <svg class="emergency-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 12h5v8h10v-8h5L12 2z"/>
+                    </svg>
+                    Emergency SOS
+                </button>
+                <li class="nav-item" data-section="worker-review">Review Worker</li>
                 <li class="nav-item" data-section="settings">Settings</li>
             </ul>
         </aside>
 
         <main class="main-content">
-            <div class="dashboard-header">
-                <h1 class="welcome-text">Welcome, Employer!</h1>
-                <button class="btn btn-primary" id="postJobBtn">+ Post New Job</button>
-            </div>
+            <div id="toast" class="toast"></div>
 
+            <!-- Dashboard Section -->
             <div id="dashboard-section">
+                <div class="dashboard-header">
+                    <h1 class="welcome-text">Welcome, Employer!</h1>
+                    <button class="btn btn-primary" id="postJobBtn">+ Post New Job</button>
+                </div>
+
                 <div class="stats-container">
                     <div class="stat-card">
                         <div class="stat-title">Active Job Posts</div>
@@ -326,6 +364,9 @@
 
                 <div class="section">
                     <h2 class="section-title">Recent Job Posts</h2>
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="job-search" placeholder="Search jobs...">
+                    </div>
                     <table class="table">
                         <thead>
                             <tr>
@@ -336,7 +377,7 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="jobs-table-body">
                             <tr>
                                 <td>Construction Helper</td>
                                 <td>2024-02-15</td>
@@ -355,7 +396,6 @@
                     </table>
                 </div>
             </div>
-
             <div id="post-job-section" style="display: none;">
                 <div class="section">
                     <h2 class="section-title">Post a New Job</h2>
@@ -389,102 +429,293 @@
                 </div>
             </div>
 
-            <div id="messages-section" style="display: none;">
+
+            <!-- Emergency Section -->
+            <div id="emergency-section" style="display: none;">
                 <div class="section">
-                    <h2 class="section-title">Messages</h2>
-                    <div class="messages-container">
-                        <div class="message-list">
-                            <div class="message-item">
-                                <strong>John Doe</strong>
-                                <p>Available for the construction job...</p>
-                            </div>
-                            <div class="message-item">
-                                <strong>Jane Smith</strong>
-                                <p>When does the shift start?</p>
-                            </div>
-                        </div>
-                        <div class="message-content">
-                            <div class="chat-messages">
-                                <!-- Chat messages will be populated here -->
-                            </div>
-                            <div class="chat-input">
-                                <input type="text" class="form-input" placeholder="Type your message...">
-                                <button class="btn btn-primary">Send</button>
-                            </div>
+                    <h2 class="section-title">Emergency Contact</h2>
+                    <div class="form-group">
+                        <label class="form-label">Current Location</label>
+                        <input type="text" class="form-input" id="current-location" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emergency Description</label>
+                        <textarea class="form-input" rows="4" placeholder="Describe the emergency situation..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="handlers.handleEmergencyAlert(event)">Send Emergency Alert</button>
+                        <button class="btn btn-primary" style="margin-left: 10px;" onclick="handlers.contactAuthorities()">Contact Local Authorities</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Worker Review Section -->
+            <div id="worker-review-section" style="display: none;">
+                <div class="section">
+                    <h2 class="section-title">Review Worker</h2>
+                    <div class="form-group">
+                        <label class="form-label">Select Worker</label>
+                        <select class="form-input">
+                            <option value="">Choose a worker...</option>
+                            <option value="1">John Doe - Construction Helper</option>
+                            <option value="2">Jane Smith - Warehouse Worker</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars">
+                            <button class="star-button">★</button>
+                            <button class="star-button">★</button>
+                            <button class="star-button">★</button>
+                            <button class="star-button">★</button>
+                            <button class="star-button">★</button>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Review Comments</label>
+                        <textarea class="form-input" rows="4" placeholder="Share your experience working with this person..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="handlers.handleReviewSubmit(event)">Submit Review</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                // Remove active class from all items
-                document.querySelectorAll('.nav-item').forEach(navItem => {
-                    navItem.classList.remove('active');
+        // State management
+        const state = {
+            currentSection: 'dashboard',
+            reviewRating: 0,
+            jobs: [],searchQuery: '',
+            toast: {
+                timer: null
+            }
+        };
+
+        // Utility functions
+        const utils = {
+            showToast(message, type = 'info', duration = 3000) {
+                const toast = document.getElementById('toast');
+                
+                // Clear any existing timeout
+                if (state.toast.timer) {
+                    clearTimeout(state.toast.timer);
+                }
+                
+                toast.textContent = message;
+                toast.style.backgroundColor = type === 'error' ? '#d62828' : 'var(--color-medium-green)';
+                toast.style.display = 'block';
+                
+                state.toast.timer = setTimeout(() => {
+                    toast.style.display = 'none';
+                }, duration);
+            },
+
+            setActiveSection(sectionId) {
+                // Hide all sections
+                document.querySelectorAll('[id$="-section"]').forEach(section => {
+                    section.style.display = 'none';
                 });
                 
-                // Add active class to clicked item
-                item.classList.add('active');
-                
-                // Hide all sections
-                document.getElementById('dashboard-section').style.display = 'none';
-                document.getElementById('post-job-section').style.display = 'none';
-                document.getElementById('messages-section').style.display = 'none';
-                
                 // Show selected section
-                const section = item.getAttribute('data-section');
-                if (section === 'dashboard') {
-                    document.getElementById('dashboard-section').style.display = 'block';
-                } else if (section === 'post-job') {
-                    document.getElementById('post-job-section').style.display = 'block';
-                } else if (section === 'messages') {
-                    document.getElementById('messages-section').style.display = 'block';
+                const selectedSection = document.getElementById(sectionId + '-section');
+                if (selectedSection) {
+                    selectedSection.style.display = 'block';
                 }
+
+                // Update navigation highlighting
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-section') === sectionId) {
+                        item.classList.add('active');
+                    }
+                });
+
+                state.currentSection = sectionId;
+            },
+
+            async getLocation() {
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        reject(new Error('Geolocation is not supported'));
+                        return;
+                    }
+
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        },
+                        error => {
+                            reject(error);
+                        },
+                        { 
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        }
+                    );
+                });
+            },
+
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            },
+
+            formatDate(date) {
+                return new Date(date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            }
+        };
+
+        // Event handlers
+        const handlers = {
+            async handleEmergencyAlert(event) {
+                event.preventDefault();
+                const description = document.querySelector('#emergency-section textarea').value;
+                const locationInput = document.getElementById('current-location');
+
+                if (!description.trim()) {
+                    utils.showToast('Please provide an emergency description', 'error');
+                    return;
+                }
+
+                try {
+                    // Simulated API call - replace with actual endpoint
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    utils.showToast('Emergency alert sent successfully');
+                    document.querySelector('#emergency-section textarea').value = '';
+                } catch (error) {
+                    utils.showToast('Failed to send emergency alert: ' + error.message, 'error');
+                }
+            },
+
+            handleStarRating(event) {
+                const stars = document.querySelectorAll('.star-button');
+                const selectedIndex = Array.from(stars).indexOf(event.target);
+                
+                stars.forEach((star, index) => {
+                    star.classList.toggle('active', index <= selectedIndex);
+                });
+                
+                state.reviewRating = selectedIndex + 1;
+            },
+
+            async handleReviewSubmit(event) {
+                event.preventDefault();
+                const workerSelect = document.querySelector('#worker-review-section select');
+                const comments = document.querySelector('#worker-review-section textarea');
+
+                if (!workerSelect.value) {
+                    utils.showToast('Please select a worker', 'error');
+                    return;
+                }
+
+                if (!state.reviewRating) {
+                    utils.showToast('Please provide a rating', 'error');
+                    return;
+                }
+
+                if (!comments.value.trim()) {
+                    utils.showToast('Please provide review comments', 'error');
+                    return;
+                }
+
+                try {
+                    // Simulated API call - replace with actual endpoint
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    utils.showToast('Review submitted successfully');
+                    
+                    // Reset form
+                    workerSelect.value = '';
+                    comments.value = '';
+                    document.querySelectorAll('.star-button').forEach(star => {
+                        star.classList.remove('active');
+                    });
+                    state.reviewRating = 0;
+                } catch (error) {
+                    utils.showToast('Failed to submit review: ' + error.message, 'error');
+                }
+            },
+
+            async contactAuthorities() {
+                try {
+                    const location = await utils.getLocation();
+                    // Simulated API call - replace with actual emergency services integration
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    utils.showToast('Local authorities have been notified of your location');
+                } catch (error) {
+                    utils.showToast('Failed to contact authorities: ' + error.message, 'error');
+                }
+            },
+
+            handleJobSearch: utils.debounce((event) => {
+                const searchQuery = event.target.value.toLowerCase();
+                const tableBody = document.getElementById('jobs-table-body');
+                const rows = tableBody.getElementsByTagName('tr');
+
+                for (let row of rows) {
+                    const title = row.cells[0].textContent.toLowerCase();
+                    row.style.display = title.includes(searchQuery) ? '' : 'none';
+                }
+            }, 300)
+        };
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set up navigation
+            document.querySelectorAll('.nav-item, .emergency-button').forEach(item => {
+                item.addEventListener('click', () => {
+                    const section = item.getAttribute('data-section');
+                    utils.setActiveSection(section);
+
+                    // Handle special section requirements
+                    if (section === 'emergency') {
+                        utils.getLocation()
+                            .then(position => {
+                                const locationInput = document.getElementById('current-location');
+                                locationInput.value = `Lat: ${position.latitude}, Long: ${position.longitude}`;
+                            })
+                            .catch(error => {
+                                console.error('Location error:', error);
+                                utils.showToast('Unable to get current location. Please enter manually.', 'error');
+                            });
+                    }
+                });
             });
-        });
-    
-        // Post Job Button
-        document.getElementById('postJobBtn').addEventListener('click', () => {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
+
+            // Set up star rating
+            document.querySelectorAll('.star-button').forEach(star => {
+                star.addEventListener('click', handlers.handleStarRating);
             });
-            document.querySelector('[data-section="post-job"]').classList.add('active');
-            document.getElementById('dashboard-section').style.display = 'none';
-            document.getElementById('post-job-section').style.display = 'block';
-            document.getElementById('messages-section').style.display = 'none';
-        });
-    
-        // Handle Job Post Form Submission
-        document.getElementById('jobPostForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-    
-            const jobTitle = document.querySelector('#jobPostForm input[type="text"]').value;
-            const description = document.querySelector('#jobPostForm textarea').value;
-            const requiredSkills = document.querySelector('#jobPostForm input[placeholder="Separate skills with commas"]').value;
-            const location = document.querySelector('#jobPostForm input[placeholder="Location"]').value;
-            const dailyWage = document.querySelector('#jobPostForm input[placeholder="Daily Wage (USD)"]').value;
-            const duration = document.querySelector('#jobPostForm input[placeholder="Duration (Days)"]').value;
-    
-            const employerId = localStorage.getItem("employerId"); // Replace with actual logged-in employer ID
-    
-            const response = await fetch("/api/employer/post-job", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ employerId, jobTitle, description, requiredSkills, location, dailyWage, duration })
-            });
-    
-            const data = await response.json();
-            if (response.ok) {
-                alert("Job posted successfully!");
-                // Optionally, you can reset the form or navigate to another section
-                document.getElementById('jobPostForm').reset();
-                document.querySelector('[data-section="dashboard"]').click();
-            } else {
-                alert("Error posting job: " + data.message);
+
+            // Set up job search
+            const searchInput = document.getElementById('job-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', handlers.handleJobSearch);
+            }
+
+            // Set up post job button
+            const postJobBtn = document.getElementById('postJobBtn');
+            if (postJobBtn) {
+                postJobBtn.addEventListener('click', () => {
+                    utils.setActiveSection('post-job');
+                });
             }
         });
     </script>
+</body>
+</html>
