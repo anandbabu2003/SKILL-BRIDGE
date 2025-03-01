@@ -25,7 +25,7 @@ def index():
             else:
                 return send_from_directory("assets", "worker.html")
             
-    return send_from_directory("assets", "login.html")
+    return send_from_directory("assets", "home.html")
 
 
 @app.route("/<path:filename>")
