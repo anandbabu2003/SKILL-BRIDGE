@@ -261,6 +261,7 @@
                 <li data-section="applications">Applications</li>
                 <li data-section="profile">Profile</li>
                 <li data-section="messages">Messages</li>
+                <li data-section="notifications">Notifications</li>
             </ul>
         </aside>
 
@@ -299,7 +300,6 @@
             <section id="applications-section" class="applications-section" style="display: none;">
                 <h2>Applications</h2>
                 <div class="jobs-list" id="user-jobs">
-                    <!-- User jobs will be dynamically populated here -->
                 </div>
             </section>
 
@@ -310,6 +310,8 @@
                         <h2 id="profile-name">John Doe</h2>
                         <p id="profile-rating">Construction Worker | 4.8 ★</p>
                     </div>
+                    <button class="btn btn-primary"
+                        onclick="localStorage.clear(); document.cookie = 'email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; window.location.href = '/';">Logout</button>
                 </div>
                 <div class="profile-details">
                     <h3>Email Address</h3>
@@ -326,6 +328,13 @@
 
                     <h3>Availability</h3>
                     <p id="profile-availability">Monday to Saturday, 8 AM - 5 PM</p>
+                </div>
+            </section>
+
+            <section id="notifications-section" class="notifications-section" style="display: none;">
+                <h2>Notifications</h2>
+                <div class="notifications-list" id="live-notifications" style="margin-top: 1rem;">
+                    <!-- New job notifications will appear here -->
                 </div>
             </section>
 
@@ -350,24 +359,19 @@
     <div class="notifications" id="notifications"></div>
 
     <script>
-        // Navigation
         document.querySelectorAll('.sidebar-menu li').forEach(item => {
             item.addEventListener('click', () => {
-                // Remove active class from all items
                 document.querySelectorAll('.sidebar-menu li').forEach(i => {
                     i.classList.remove('active');
                 });
-                // Add active class to clicked item
                 item.classList.add('active');
 
-                // Show the corresponding section
                 const sectionId = `${item.getAttribute('data-section')}-section`;
                 document.querySelectorAll('main section').forEach(section => {
                     section.style.display = 'none';
                 });
                 document.getElementById(sectionId).style.display = 'block';
 
-                // Fetch and display data based on the section
                 if (sectionId === 'jobs-section') {
                     fetchUnfilledJobs();
                 } else if (sectionId === 'applications-section') {
@@ -376,12 +380,10 @@
                     fetchUserProfile();
                 }
 
-                // Show notification
                 showNotification(`Navigated to ${item.textContent}`);
             });
         });
 
-        // Notification system
         function showNotification(message) {
             const notification = document.createElement('div');
             notification.classList.add('notification');
@@ -462,7 +464,7 @@
                         </div>
                         <div name="button-group">
                             <button class="btn btn-primary">${job.assigned ? 'Assigned' : 'Pending'}</button>
-                            <button class="btn btn-primary" onclick="cancelJob('${job.job_id}')">Cancel</button>
+                            <button class="btn btn-primary" onclick="cancelJobReason('${job.job_id}')">Cancel with Reason</button>
                         </div>
                     `;
                     jobsList.appendChild(jobCard);
@@ -503,6 +505,11 @@
                 document.getElementById('profile-skills').textContent = user.skills;
                 document.getElementById('profile-experience').textContent = user.experience;
                 document.getElementById('profile-availability').textContent = user.availability;
+
+                if (user.location) {
+                    window.currentUserProfile = user;
+                    fetchUnassignedJobsByLocation(user.location);
+                }
             } catch (error) {
                 console.error('Error fetching user profile:', error);
             }
@@ -544,7 +551,71 @@
             document.getElementById('job-modal').style.display = 'block';
         }
 
+        // Example function for applying to a job
+        function applyForJob(jobID) {
+            fetch('/api/apply_job', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: localStorage.getItem('email'),
+                    job_id: jobID
+                })
+            })
+                .then(() => showNotification('Application sent!'))
+                .catch((err) => console.error('Error applying for job:', err));
+        }
+
         fetchRecentJobs();
+
+        function fetchUnassignedJobsByLocation(userLocation) {
+            fetch('/api/jobs_by_location?location=' + encodeURIComponent(userLocation))
+                .then(response => response.json())
+                .then(jobs => {
+                    const notificationsContainer = document.getElementById('live-notifications');
+                    notificationsContainer.innerHTML = ''; // Clear old notifications
+
+                    jobs.forEach(job => {
+                        // Optional toast
+                        showNotification(`Found job: ${job.title} @ ${job.location}`);
+
+                        // Add job card to notifications list
+                        const notif = document.createElement('div');
+                        notif.classList.add('job-card');
+                        notif.style.backgroundColor = '#f9f9f9';
+                        notif.style.marginBottom = '1rem';
+                        notif.innerHTML = `
+                            <h3>${job.title}</h3>
+                            <div class="details">
+                                <p><strong>Location:</strong> ${job.location}</p>
+                                <p><strong>Duration:</strong> ${job.duration}</p>
+                                <p><strong>Pay:</strong> $${job.daily_wage}/day</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyForJob('${job.job_id}')">Apply Now</button>
+                        `;
+                        notificationsContainer.prepend(notif);
+                    });
+                })
+                .catch(error => console.error('Error fetching unassigned jobs by location:', error));
+        }
+
+        // Example usage: when user navigates to Notifications
+        document.querySelector('li[data-section="notifications"]').addEventListener('click', async () => {
+            email = localStorage.getItem('email');
+            fetchUserProfile(email)
+        });
+
+        function cancelJobReason(jobID) {
+            const reason = prompt("Why are you canceling this job?");
+            if (!reason) return;
+            fetch('/api/cancel_job_worker', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: localStorage.getItem('email'), job_id: jobID, reason })
+            })
+            .then(res => res.json())
+            .then(data => showNotification(data.message))
+            .catch(err => console.error(err));
+        }
     </script>
 </body>
 

@@ -259,6 +259,7 @@
                     <input type="email" id="email" placeholder="Email" required>
                     <input type="password" id="password" placeholder="Password" required>
                     <input type="tel" id="phone" placeholder="Phone Number" required pattern="[0-9]{10}">
+                    <input id="location" placeholder="Location" required>
 
                     <button type="submit">Sign Up</button>
 
@@ -288,7 +289,8 @@
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
-                phone: document.getElementById('phone').value
+                phone: document.getElementById('phone').value,
+                location: document.getElementById('location').value
             };
 
             const button = this.querySelector('button[type="submit"]');

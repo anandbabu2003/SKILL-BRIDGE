@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -12,6 +12,20 @@ client = MongoClient(
 db = client["job_portal"]
 users_collection = db["users"]
 jobs_collection = db["jobs"]
+
+
+@app.route("/")
+def index():
+    email = request.cookies.get("email")
+    if email:
+        user = users_collection.find_one({"email": email})
+        if user:
+            if user.get("type") == "employee":
+                return send_from_directory("assets", "employee.html")
+            else:
+                return send_from_directory("assets", "worker.html")
+            
+    return send_from_directory("assets", "login.html")
 
 
 @app.route("/<path:filename>")
@@ -31,6 +45,7 @@ def signup():
         "password_hash": generate_password_hash(data.get("password")),
         "phone_no": data.get("phone"),
         "type": data.get("role"),
+        "location": data.get("location"),
     }
     users_collection.insert_one(user)
     return jsonify({"message": "User registered successfully"})
@@ -45,7 +60,9 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
     user.pop("password_hash")
     del user["_id"]
-    return jsonify({"message": "Login successful", "user": user})
+    response = make_response(jsonify({"message": "Login successful", "user": user}))
+    response.set_cookie("email", email)
+    return response
 
 
 @app.route("/api/set_user_type", methods=["POST"])
@@ -152,7 +169,7 @@ def get_employee_job_unassigned():
     )
     for job in jobs:
         if len(job.get("applicants", [])) == 0:
-            del jobs[jobs.index(job)]
+            continue
         else:
             for applicant in job["applicants"]:
                 appl = users_collection.find_one(
@@ -163,7 +180,9 @@ def get_employee_job_unassigned():
                     "title": job["title"],
                     "email": applicant,
                     "name": appl["name"],
+                    "location": appl.get("location", ""), # Include applicant's location
                     "assigned": False,
+                    "status": "pending"
                 }
                 results.append(result)
     return jsonify(results)
@@ -180,7 +199,7 @@ def get_job_info():
 
 @app.route("/api/delete_job", methods=["POST"])
 def delete_job():
-    job_id = request.json.get("id")
+    job_id = request.json.get("job_id")
     result = jobs_collection.delete_one({"_id": ObjectId(job_id)})
     if result.deleted_count == 0:
         return jsonify({"error": "Job not found"}), 404
@@ -241,6 +260,44 @@ def employer_stats():
     jobs_posted = jobs_collection.count_documents({"email": email})
     jobs_filled = jobs_collection.count_documents({"email": email, "assigned": True})
     return jsonify({"jobs_posted": jobs_posted, "jobs_filled": jobs_filled})
+
+
+@app.route("/api/jobs_by_location", methods=["GET"])
+def get_unassigned_jobs_by_location():
+    location = request.args.get("location", "").lower()
+    # Find all unassigned jobs with matching location (case-insensitive)
+    jobs = list(jobs_collection.find({
+        "assigned": False,
+        "assigned_mail": None,
+        "location": {"$regex": location, "$options": "i"}
+    }))
+    for job in jobs:
+        job["job_id"] = str(job.pop("_id"))
+    return jsonify(jobs)
+
+
+@app.route("/api/edit_job", methods=["POST"])
+def edit_job():
+    data = request.json
+    job_id = data.get("job_id")
+    updated_fields = {
+        "title": data.get("title"),
+        "location": data.get("location"),
+        "duration": data.get("duration"),
+        "daily_wage": data.get("daily_wage"),
+    }
+    jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$set": updated_fields})
+    return jsonify({"message": "Job updated successfully"})
+
+
+@app.route("/api/cancel_job_worker", methods=["POST"])
+def cancel_job_worker():
+    job_id = request.json.get("job_id")
+    email = request.json.get("email")
+    reason = request.json.get("reason")
+    # You could store the reason in "cancellations" or update the job doc
+    jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$pull": {"applicants": email}})
+    return jsonify({"message": f"Worker {email} canceled job with reason: {reason}"})
 
 
 if __name__ == "__main__":
