@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
+from requests import post, get
 
 app = Flask(__name__)
 
@@ -24,7 +25,7 @@ def index():
                 return send_from_directory("assets", "employee.html")
             else:
                 return send_from_directory("assets", "worker.html")
-            
+
     return send_from_directory("assets", "home.html")
 
 
@@ -180,9 +181,11 @@ def get_employee_job_unassigned():
                     "title": job["title"],
                     "email": applicant,
                     "name": appl["name"],
-                    "location": appl.get("location", ""), # Include applicant's location
+                    "location": appl.get(
+                        "location", ""
+                    ),  # Include applicant's location
                     "assigned": False,
-                    "status": "pending"
+                    "status": "pending",
                 }
                 results.append(result)
     return jsonify(results)
@@ -266,11 +269,15 @@ def employer_stats():
 def get_unassigned_jobs_by_location():
     location = request.args.get("location", "").lower()
     # Find all unassigned jobs with matching location (case-insensitive)
-    jobs = list(jobs_collection.find({
-        "assigned": False,
-        "assigned_mail": None,
-        "location": {"$regex": location, "$options": "i"}
-    }))
+    jobs = list(
+        jobs_collection.find(
+            {
+                "assigned": False,
+                "assigned_mail": None,
+                "location": {"$regex": location, "$options": "i"},
+            }
+        )
+    )
     for job in jobs:
         job["job_id"] = str(job.pop("_id"))
     return jsonify(jobs)
@@ -296,8 +303,71 @@ def cancel_job_worker():
     email = request.json.get("email")
     reason = request.json.get("reason")
     # You could store the reason in "cancellations" or update the job doc
-    jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$pull": {"applicants": email}})
+    jobs_collection.update_one(
+        {"_id": ObjectId(job_id)}, {"$pull": {"applicants": email}}
+    )
     return jsonify({"message": f"Worker {email} canceled job with reason: {reason}"})
+
+
+@app.route("/api/upload_worker_job_pic", methods=["POST"])
+def upload_worker_job_pic():
+    data = request.json
+    email = data.get("email")
+    pic_bytes = data.get("pic_bytes")
+
+    webiste = "https://envs.sh"
+    resp = post(webiste, files={"file": pic_bytes})
+
+    db.pics.insert_one({"email": email, "pic_url": resp.text.strip()})
+    return jsonify({"message": "Image uploaded successfully"})
+
+
+@app.route("/api/get_user_photos", methods=["GET"])
+def get_worker_photos():
+    email = request.args.get("email")
+    pics = list(db.pics.find({"email": email}))
+    for pic in pics:
+        pic["_id"] = str(pic["_id"])
+        pic["pic_url"] = get(pic["pic_url"]).text.strip()
+
+    return jsonify(pics)
+
+import random
+def get_rand_skills():
+    skills = ["Elect", "Plumb", "Carp", "Mason", "Paint", "Clean", "Cook"]
+    return random.sample(skills, 2)
+
+@app.route("/api/nearby_workers", methods=["GET"])
+def get_nearby_workers():
+    email = request.args.get("email")
+    user = users_collection.find_one({"email": email})
+    loc = user.get("location")
+    users = list(users_collection.find({"location": loc, "type": "worker"}))
+    for user in users:
+        user.pop("password_hash")
+        user.pop("_id")
+        user["reviews"] = [] if not user.get("reviews") else user["reviews"]
+        user["skills"] = get_rand_skills() if not user.get("skills") else user["skills"]
+        users_collection.update_one({"email": user["email"]}, {"$set": user}) 
+
+        pics = list(db.pics.find({"email": user["email"]}))
+        pics_urls = []
+        for pic in pics:
+            pics_urls.append(get(pic["pic_url"]).text.strip())
+        user["pics"] = pics_urls
+    return jsonify(users)
+
+@app.route("/api/review_worker", methods=["POST"])
+def review_worker():
+    data = request.json
+    email = data.get("email")
+    review = data.get("review")
+    user = users_collection.find_one({"email": email})
+    if not user.get("reviews"):
+        user["reviews"] = []
+    user["reviews"].append(review)
+    users_collection.update_one({"email": email}, {"$set": user})
+    return jsonify({"message": "Review added successfully"})
 
 
 if __name__ == "__main__":

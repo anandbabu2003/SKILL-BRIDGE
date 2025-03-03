@@ -630,6 +630,45 @@
             font-size: 16px;
             color: #2f3e46;
         }
+
+        .modal,
+        #pics-modal {
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .pics-modal {
+            display: none; /* hide by default */
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6); /* overlay */
+            justify-content: center;
+            align-items: center;
+        }
+        .pics-modal.show {
+            display: flex; /* show when 'show' class is added */
+        }
+        .pics-modal .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 80%;
+            position: relative;
+        }
+        .pics-grid img {
+            width: 100%;
+            border: 2px solid #84a98c;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -644,6 +683,7 @@
                 <li class="nav-item" data-section="applications">Applications</li>
                 <li class="nav-item" data-section="messages">Messages</li>
                 <li class="nav-item" data-section="settings">Settings</li>
+                <li class="nav-item" data-section="nearby-workers">Nearby Workers</li>
                 <li class="nav-item signout"
                     onclick="localStorage.clear(); document.cookie = 'email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; window.location.href = '/';">
                     Sign Out</li>
@@ -832,6 +872,28 @@
                     <div id="modal-body"></div>
                 </div>
             </div>
+
+            <!-- New Nearby Workers Section (placed under other sections) -->
+            <div id="nearby-workers-section" style="display: none;">
+                <div class="section">
+                    <h2 class="section-title">Nearby Workers</h2>
+                    <div id="workers-list" style="display: flex; flex-wrap: wrap; gap: 16px;"></div>
+                </div>
+            </div>
+
+            <!-- Review Modal -->
+            <div class="modal" id="review-modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeReviewModal()">&times;</span>
+                    <h2>Rate This Worker</h2>
+                    <div id="review-modal-body">
+                        <!-- Optionally add a rating input here -->
+                        <label for="review-text">Review:</label>
+                        <textarea id="review-text" rows="4" style="width: 100%; margin-bottom: 10px;"></textarea>
+                        <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -854,6 +916,7 @@
                 document.getElementById('applications-section').style.display = 'none';
                 document.getElementById('messages-section').style.display = 'none';
                 document.getElementById('settings-section').style.display = 'none';
+                document.getElementById('nearby-workers-section').style.display = 'none';
 
                 // Show selected section
                 const section = item.getAttribute('data-section');
@@ -873,6 +936,9 @@
                     document.getElementById('messages-section').style.display = 'block';
                 } else if (section === 'settings') {
                     document.getElementById('settings-section').style.display = 'block';
+                } else if (section === 'nearby-workers') {
+                    document.getElementById('nearby-workers-section').style.display = 'block';
+                    fetchNearbyWorkers();
                 }
             });
         });
@@ -889,6 +955,7 @@
             document.getElementById('applications-section').style.display = 'none';
             document.getElementById('messages-section').style.display = 'none';
             document.getElementById('settings-section').style.display = 'none';
+            document.getElementById('nearby-workers-section').style.display = 'none';
         });
 
         // Handle Job Post Form Submission
@@ -1335,6 +1402,148 @@
         function saveSettings() {
             // Dummy implementation – simply alert that settings were saved.
             alert("Settings saved!");
+        }
+
+        function createWorkersSkillSearch() {
+            const nearbySection = document.getElementById('nearby-workers-section');
+            if (!document.getElementById('workers-skill-search-container')) {
+                const searchContainer = document.createElement('div');
+                searchContainer.id = 'workers-skill-search-container';
+                searchContainer.style.display = 'flex';
+                searchContainer.style.flexWrap = 'wrap';
+                searchContainer.style.gap = '10px';
+                searchContainer.style.marginBottom = '20px';
+                searchContainer.style.borderRadius = '4px';
+                searchContainer.style.padding = '10px';
+                searchContainer.style.backgroundColor = '#f8f8f8';
+                searchContainer.style.boxShadow = '1px 1px 3px rgba(0,0,0,0.1)';
+                searchContainer.innerHTML = `
+                    <input type="text" class="form-input" id="workers-skill-search" placeholder="Search by skill" style="flex: 2;">
+                    <button class="btn btn-primary" id="apply-skill-filter" style="flex: 1;">Apply Filter</button>
+                    <button class="btn" id="reset-skill-filter" style="flex: 1; background-color: var(--color-light-gray); color: var(--color-darkest-green);">Reset</button>
+                `;
+                // Insert the search container at the top of the nearby-workers-section
+                nearbySection.insertBefore(searchContainer, nearbySection.firstElementChild);
+                
+                // Set up the listeners for filtering
+                document.getElementById('apply-skill-filter').addEventListener('click', filterWorkersBySkill);
+                document.getElementById('reset-skill-filter').addEventListener('click', () => {
+                    document.getElementById('workers-skill-search').value = '';
+                    displayWorkers(window.workersData);
+                });
+            }
+        }
+
+        function filterWorkersBySkill() {
+            const searchTerm = document.getElementById('workers-skill-search').value.toLowerCase();
+            let filtered = window.workersData;
+            if (searchTerm) {
+                filtered = filtered.filter(worker => 
+                    worker.skills.some(skill => skill.toLowerCase().includes(searchTerm))
+                );
+            }
+            displayWorkers(filtered);
+        }
+
+        function displayWorkers(workers) {
+            const workersList = document.getElementById('workers-list');
+            workersList.innerHTML = '';
+            if (workers.length === 0) {
+                workersList.innerHTML = '<p>No workers found matching your criteria.</p>';
+                return;
+            }
+            workers.forEach(worker => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: #fff; border-radius: 8px; padding: 16px; width: 250px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                `;
+                card.innerHTML = `
+                    <h3 style="margin-bottom: 8px;">${worker.name}</h3>
+                    <p style="margin-bottom: 8px;"><strong>Email:</strong> ${worker.email}</p>
+                    <p style="margin-bottom: 8px;"><strong>Skills:</strong> ${worker.skills.join(', ')}</p>
+                    <div style="margin-bottom: 8px;"><strong>Reviews:</strong></div>
+                    <div style="background: #f9f9f9; border-radius: 4px; border: 1px solid #ececec; padding: 8px;">
+                        ${worker.reviews.map(r => `
+                            <div style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
+                                <span style="color: #52796f;">•</span> ${r}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 8px;" onclick="openReviewModal('${worker.email}')">Leave Review</button>
+                    <button class="btn" style="margin-top: 8px; margin-left: 4px;" onclick='showPics(${JSON.stringify(worker.pics || [])}, "${worker.email}")'>View Photos</button>
+                    <button class="btn" style="margin-top: 8px; margin-left: 4px;">Hire</button>
+                    <button class="btn" style="margin-top: 8px; margin-left: 4px;">Message</button>
+                    <div class="pics-modal" id="pics-modal-${worker.email}">
+                        <div class="modal-content">
+                            <span class="close" onclick="closePicsModal('${worker.email}')">&times;</span>
+                            <div class="pics-grid" id="pics-grid-${worker.email}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;"></div>
+                        </div>
+                    </div>
+                `;
+                workersList.appendChild(card);
+            });
+        }
+
+        async function fetchNearbyWorkers() {
+            try {
+                const email = localStorage.getItem('email'); 
+                const response = await fetch('/api/nearby_workers?email=' + encodeURIComponent(email));
+                const workers = await response.json();
+                window.workersData = workers; // store globally for filtering
+                createWorkersSkillSearch(); // add search container if not present
+                displayWorkers(workers);
+            } catch (error) {
+                console.error('Error fetching nearby workers:', error);
+            }
+        }
+
+        let currentWorkerEmail = null;
+        function openReviewModal(workerEmail) {
+            currentWorkerEmail = workerEmail;
+            document.getElementById('review-text').value = '';
+            document.getElementById('review-modal').classList.add('show');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.remove('show');
+        }
+
+        function submitReview() {
+            const reviewText = document.getElementById('review-text').value;
+            if (!reviewText.trim()) {
+                alert('Please enter a review.');
+                return;
+            }
+            fetch('/api/review_worker', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentWorkerEmail, review: reviewText })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || 'Review submitted!');
+                closeReviewModal();
+                fetchNearbyWorkers();
+            })
+            .catch(err => console.error('Error submitting review:', err));
+        }
+
+        function showPics(picsArray, workerEmail) {
+            const picsModal = document.getElementById('pics-modal-' + workerEmail);
+            const picsGrid = document.getElementById('pics-grid-' + workerEmail);
+            picsGrid.innerHTML = '';
+            picsArray.forEach(pic => {
+                const img = document.createElement('img');
+                img.src = 'data:image/jpeg;base64,' + pic;
+                picsGrid.appendChild(img);
+            });
+            picsModal.classList.add('show');
+        }
+
+        function closePicsModal() {
+            const picsModal = document.getElementById('pics-modal-' + workerEmail);
+            picsModal.style.display = 'none';
         }
     </script>
 </body>
