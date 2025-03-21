@@ -13,6 +13,7 @@ client = MongoClient(
 db = client["job_portal"]
 users_collection = db["users"]
 jobs_collection = db["jobs"]
+completed_jobs_collection = db["completed_jobs"]
 
 
 @app.route("/")
@@ -229,6 +230,9 @@ def get_user_info():
     user = users_collection.find_one({"email": email}, {"_id": 0, "password_hash": 0})
     if not user:
         return jsonify({"error": "User not found"}), 404
+     # Fetch pics from the pics collection
+    pics = list(db.pics.find({"email": email}, {"_id": 0, "pic_url": 1}))
+    user["pics"] = [get(pic["pic_url"]).text.strip() for pic in pics]
     return jsonify(user)
 
 
@@ -399,6 +403,30 @@ def update_availability():
         return jsonify({"error": "User not found"}), 404
     return jsonify({"message": "Availability updated successfully"})
 
+@app.route("/api/mark_job_completed", methods=["POST"])
+def mark_job_completed():
+    data = request.json
+    email = data.get("email")
+    job_id = data.get("job_id")
+
+    # Remove the job from the user's applications
+    result = jobs_collection.update_one(
+        {"_id": ObjectId(job_id), "applicants": email},
+        {"$pull": {"applicants": email}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Job not found or not assigned to this user"}), 404
+
+    # Add the job to the "completed_jobs" collection
+    completed_jobs_collection.insert_one({
+        "job_id": job_id,
+        "email": email,
+        "completed_on": datetime.utcnow()
+    })
+
+    return jsonify({"message": "Job marked as completed"})
+
 @app.route("/api/review_worker", methods=["POST"])
 def review_worker():
     data = request.json
@@ -410,7 +438,6 @@ def review_worker():
     user["reviews"].append(review)
     users_collection.update_one({"email": email}, {"$set": user})
     return jsonify({"message": "Review added successfully"})
-
 
 if __name__ == "__main__":
     app.run(debug=True)
