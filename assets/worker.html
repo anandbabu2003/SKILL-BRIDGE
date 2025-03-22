@@ -371,16 +371,16 @@
 
                 <div class="stats-grid" style="margin-top: 2rem;">
                     <div class="stat-card">
-                        <h3>Active Applications</h3>
-                        <div class="number">12</div>
+                        <h3></h3>
+                        <div class="number"></div>
                     </div>
                     <div class="stat-card">
-                        <h3>Completed Jobs</h3>
+                        <h3>-- COMPLETED JOBS--</h3>
                         <div class="number">45</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Total Earnings</h3>
-                        <div class="number">$2,450</div>
+                        <h3></h3>
+                        <div class="number"></div>
                     </div>
                 </div>
 
@@ -448,6 +448,13 @@
             <input type="text" id="new-availability" placeholder="Enter new availability">
             <button id="save-availability-btn" class="btn btn-primary">Save Availability</button>
         </div>
+        <h3>Location</h3>
+<p id="profile-location"></p>
+<button id="edit-location-btn" class="btn btn-primary">Edit Location</button>
+<div id="edit-location-section" style="display: none;">
+    <input type="text" id="new-location" placeholder="Enter new location">
+    <button id="save-location-btn" class="btn btn-primary">Save Location</button>
+</div>
     </div>
     <div style="margin-top: 2rem;">
         <h3>Upload Work Photo</h3>
@@ -583,25 +590,50 @@
     });
 
     async function loadProfile() {
-        const email = localStorage.getItem('email');
-        const response = await fetch('/api/user?email=' + email);
-        const user = await response.json();
-        document.getElementById('profile-name').textContent = user.name;
-        document.getElementById('profile-rating').textContent = `${user.type} | 5 ★`;
-        document.getElementById('profile-email').textContent = user.email;
-        document.getElementById('profile-phone').textContent = user.phone_no;
-        document.getElementById('profile-experience').textContent = user.experience;
-        document.getElementById('profile-availability').textContent = user.availability;
+    const email = localStorage.getItem('email');
+    const response = await fetch('/api/user?email=' + email);
+    const user = await response.json();
 
-        const skillsList = document.getElementById('skills-list');
-        skillsList.innerHTML = '';
-        user.skills.forEach(skill => {
-            const li = document.createElement('li');
-            li.textContent = skill;
-            skillsList.appendChild(li);
-        });
+    document.getElementById('profile-name').textContent = user.name;
+    document.getElementById('profile-rating').textContent = `${user.type} | 5 ★`;
+    document.getElementById('profile-email').textContent = user.email;
+    document.getElementById('profile-phone').textContent = user.phone_no;
+    document.getElementById('profile-experience').textContent = user.experience;
+    document.getElementById('profile-availability').textContent = user.availability;
+    document.getElementById('profile-location').textContent = user.location || 'Not Set';
+
+    const skillsList = document.getElementById('skills-list');
+    skillsList.innerHTML = '';
+    user.skills.forEach(skill => {
+        const li = document.createElement('li');
+        li.textContent = skill;
+        skillsList.appendChild(li);
+    });
+}
+document.getElementById('edit-location-btn').addEventListener('click', () => {
+    document.getElementById('edit-location-section').style.display = 'block';
+});
+
+document.getElementById('save-location-btn').addEventListener('click', async () => {
+    const newLocation = document.getElementById('new-location').value;
+    const email = localStorage.getItem('email');
+    const response = await fetch('/api/update_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, location: newLocation }),
+    });
+    const result = await response.json();
+    if (result.message === 'Location updated successfully') {
+        alert('Location updated successfully');
+        document.getElementById('edit-location-section').style.display = 'none';
+        loadProfile(); // Reload the profile details
+    } else {
+        alert('Error updating location');
     }
-
+});
+    
     // Call loadProfile when the profile section is displayed
     document.querySelector('[data-section="profile"]').addEventListener('click', loadProfile);
         document.querySelectorAll('.sidebar-menu li').forEach(item => {
@@ -722,6 +754,7 @@
         console.error('Error fetching user jobs:', error);
     }
 }
+
 async function markJobCompleted(jobID) {
     try {
         const response = await fetch('/api/mark_job_completed', {
@@ -738,6 +771,7 @@ async function markJobCompleted(jobID) {
         if (data.message === 'Job marked as completed') {
             alert('Job marked as completed!');
             fetchUserJobs(); // Refresh the job list
+            fetchCompletedJobsCount(); // Update the completed jobs count
         } else {
             alert('Error marking job as completed');
         }
@@ -745,7 +779,28 @@ async function markJobCompleted(jobID) {
         console.error('Error marking job as completed:', error);
     }
 }
+async function fetchCompletedJobsCount() {
+    try {
+        const email = localStorage.getItem('email');
+        const response = await fetch(`/api/completed_jobs_count?email=${encodeURIComponent(email)}`);
+        const data = await response.json();
 
+        if (data.completed_jobs_count !== undefined) {
+            document.querySelector('.stat-card:nth-child(2) .number').textContent = data.completed_jobs_count;
+        } else {
+            console.error('Error fetching completed jobs count:', data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching completed jobs count:', error);
+    }
+}
+async function initializeDashboard() {
+    await fetchRecentJobs();
+    await fetchCompletedJobsCount(); // Fetch completed jobs count
+}
+
+// Call the initialization function
+initializeDashboard();
         async function cancelJob(jobID) {
             try {
                 const response = await fetch('/api/cancel_job', {

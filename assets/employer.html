@@ -1335,7 +1335,7 @@
                             <input id="edit-location" type="text" />
                         </div>
                         <div class="input-group">
-                            <label for="edit-wage">Daily Wage (USD):</label>
+                            <label for="edit-wage">Daily Wage:</label>
                             <input id="edit-wage" type="number" />
                         </div>
                         <button class="btn-edit" id="save-edit">Save</button>
@@ -1579,44 +1579,44 @@ function saveSettings() {
         }
 
         function displayWorkers(workers) {
-            const workersList = document.getElementById('workers-list');
-            workersList.innerHTML = '';
-            if (workers.length === 0) {
-                workersList.innerHTML = '<p>No workers found matching your criteria.</p>';
-                return;
-            }
-            workers.forEach(worker => {
-                const card = document.createElement('div');
-                card.style.cssText = `
-                    background: #fff; border-radius: 8px; padding: 16px; width: 250px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                `;
-                card.innerHTML = `
-                    <h3 style="margin-bottom: 8px;">${worker.name}</h3>
-                    <p style="margin-bottom: 8px;"><strong>Email:</strong> ${worker.email}</p>
-                    <p style="margin-bottom: 8px;"><strong>Skills:</strong> ${worker.skills.join(', ')}</p>
-                    <div style="margin-bottom: 8px;"><strong>Reviews:</strong></div>
-                    <div style="background: #f9f9f9; border-radius: 4px; border: 1px solid #ececec; padding: 8px;">
-                        ${worker.reviews.map(r => `
-                            <div style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
-                                <span style="color: #52796f;">•</span> ${r}
-                            </div>
-                        `).join('')}
+    const workersList = document.getElementById('workers-list');
+    workersList.innerHTML = '';
+    if (workers.length === 0) {
+        workersList.innerHTML = '<p>No workers found matching your criteria.</p>';
+        return;
+    }
+    workers.forEach(worker => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: #fff; border-radius: 8px; padding: 16px; width: 250px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        `;
+        card.innerHTML = `
+            <h3 style="margin-bottom: 8px;">${worker.name}</h3>
+            <p style="margin-bottom: 8px;"><strong>Phone:</strong> ${worker.phone_no || 'N/A'}</p>
+            <p style="margin-bottom: 8px;"><strong>Skills:</strong> ${worker.skills.join(', ')}</p>
+            <p style="margin-bottom: 8px;"><strong>Experience:</strong> ${worker.experience || 'N/A'}</p>
+            <p style="margin-bottom: 8px;"><strong>Availability:</strong> ${worker.availability || 'Not Available'}</p>
+            <div style="margin-bottom: 8px;"><strong>Reviews:</strong></div>
+            <div style="background: #f9f9f9; border-radius: 4px; border: 1px solid #ececec; padding: 8px;">
+                ${worker.reviews.map(r => `
+                    <div style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
+                        <span style="color: #52796f;">•</span> ${r}
                     </div>
-                    <button class="btn btn-primary" style="margin-top: 8px;" onclick="openReviewModal('${worker.email}')">Leave Review</button>
-                    <button class="btn" style="margin-top: 8px; margin-left: 4px;" onclick='showPics(${JSON.stringify(worker.pics || [])}, "${worker.email}")'>View Photos</button>
-                    <button class="btn" style="margin-top: 8px; margin-left: 4px;">Hire</button>
-                    <button class="btn" style="margin-top: 8px; margin-left: 4px;">Message</button>
-                    <div class="pics-modal" id="pics-modal-${worker.email}">
-                        <div class="modal-content">
-                            <span class="close" onclick="closePicsModal('${worker.email}')">&times;</span>
-                            <div class="pics-grid" id="pics-grid-${worker.email}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;"></div>
-                        </div>
-                    </div>
-                `;
-                workersList.appendChild(card);
-            });
-        }
+                `).join('')}
+            </div>
+            <button class="btn btn-primary" style="margin-top: 8px;" onclick="openReviewModal('${worker.email}')">Leave Review</button>
+            <button class="btn" style="margin-top: 8px; margin-left: 4px;" onclick='showPics(${JSON.stringify(worker.pics || [])}, "${worker.email}")'>View Photos</button>
+            <div class="pics-modal" id="pics-modal-${worker.email}">
+                <div class="modal-content">
+                    <span class="close" onclick="closePicsModal('${worker.email}')">&times;</span>
+                    <div class="pics-grid" id="pics-grid-${worker.email}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;"></div>
+                </div>
+            </div>
+        `;
+        workersList.appendChild(card);
+    });
+}
 
         async function fetchNearbyWorkers() {
             try {
@@ -1673,11 +1673,12 @@ function saveSettings() {
             });
             picsModal.classList.add('show');
         }
-
-        function closePicsModal() {
-            const picsModal = document.getElementById('pics-modal-' + workerEmail);
-            picsModal.style.display = 'none';
-        }
+        function closePicsModal(workerEmail) {
+    const picsModal = document.getElementById('pics-modal-' + workerEmail);
+    if (picsModal) {
+        picsModal.classList.remove('show'); // Remove the 'show' class to hide the modal
+    }
+}
     </script>
 </body>
 

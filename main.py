@@ -461,6 +461,25 @@ def update_password():
 
     return jsonify({"message": "Password updated successfully"})
 
+@app.route("/api/update_location", methods=["POST"])
+def update_location():
+    data = request.json
+    email = data.get("email")
+    new_location = data.get("location")
+
+    if not email or not new_location:
+        return jsonify({"error": "Email and location are required"}), 400
+
+    result = users_collection.update_one(
+        {"email": email},
+        {"$set": {"location": new_location}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"message": "Location updated successfully"})
+
 @app.route("/api/review_worker", methods=["POST"])
 def review_worker():
     data = request.json
