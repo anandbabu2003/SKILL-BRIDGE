@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
 from requests import post, get
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 
@@ -426,6 +427,39 @@ def mark_job_completed():
     })
 
     return jsonify({"message": "Job marked as completed"})
+
+@app.route("/api/completed_jobs_count", methods=["GET"])
+def get_completed_jobs_count():
+    email = request.args.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    # Count the number of completed jobs for the worker
+    completed_jobs_count = completed_jobs_collection.count_documents({"email": email})
+
+    return jsonify({"completed_jobs_count": completed_jobs_count})
+
+@app.route("/api/update_password", methods=["POST"])
+def update_password():
+    data = request.json
+    email = data.get("email")
+    current_password = data.get("current_password")
+    new_password = data.get("new_password")
+
+    # Find the user in the database
+    user = users_collection.find_one({"email": email})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Verify the current password
+    if not check_password_hash(user["password_hash"], current_password):
+        return jsonify({"error": "Current password is incorrect"}), 400
+
+    # Update the password
+    new_password_hash = generate_password_hash(new_password)
+    users_collection.update_one({"email": email}, {"$set": {"password_hash": new_password_hash}})
+
+    return jsonify({"message": "Password updated successfully"})
 
 @app.route("/api/review_worker", methods=["POST"])
 def review_worker():

@@ -669,6 +669,74 @@
             border: 2px solid #84a98c;
             border-radius: 4px;
         }
+        /* Settings Section Styles */
+#settings-section {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+}
+
+#settings-section h2 {
+    color: var(--color-dark);
+    margin-bottom: 1.5rem;
+}
+
+.settings-group {
+    margin-bottom: 2rem;
+}
+
+.settings-group h3 {
+    color: var(--color-medium-green);
+    margin-bottom: 0.5rem;
+}
+
+.settings-group p {
+    color: var(--color-dark);
+    margin-bottom: 1rem;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--color-darkest-green);
+}
+
+.settings-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-sage);
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.settings-group input:focus {
+    outline: none;
+    border-color: var(--color-medium-green);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+#settings-section .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#settings-section .btn-primary {
+    background-color: var(--color-medium-green);
+    color: white;
+}
+
+#settings-section .btn-primary:hover {
+    background-color: var(--color-dark-green);
+}
     </style>
 </head>
 
@@ -834,29 +902,21 @@
                 <h2 class="section-title">Settings</h2>
 
                 <div class="settings-group" style="margin-bottom: 20px;">
-                    <h3>General Settings</h3>
-                    <p>Change your display name, language, and other general preferences.</p>
+                   <h3>EMAIL</h3>
                     <label for="display-name" style="display: block; margin-top: 10px; font-weight: 600; color: var(--color-darkest-green);">Display Name:</label>
                     <input type="text" id="display-name" class="form-input" placeholder="Enter your display name" style="margin-top: 5px;">
                 </div>
 
                 <div class="settings-group" style="margin-bottom: 20px;">
                     <h3>Security Settings</h3>
-                    <p>Update your password and account security preferences.</p>
+                    <p>Update your password</p>
                     <label for="current-password" style="display: block; margin-top: 10px; font-weight: 600; color: var(--color-darkest-green);">Current Password:</label>
                     <input type="password" id="current-password" class="form-input" placeholder="Current Password" style="margin-top: 5px;">
                     <label for="new-password" style="display: block; margin-top: 10px; font-weight: 600; color: var(--color-darkest-green);">New Password:</label>
                     <input type="password" id="new-password" class="form-input" placeholder="New Password" style="margin-top: 5px;">
                 </div>
 
-                <div class="settings-group" style="margin-bottom: 20px;">
-                    <h3>Notification Settings</h3>
-                    <p>Manage your email notifications and alerts.</p>
-                    <label style="display: block; margin-top: 10px; font-weight: 600; color: var(--color-darkest-green);">
-                        <input type="checkbox" id="email-notifications" checked style="margin-right: 5px;">
-                        Email Notifications
-                    </label>
-                </div>
+            
 
                 <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
             </div>
@@ -1444,11 +1504,39 @@ function openImageZoomModal(imageSrc) {
     zoomModal.style.opacity = '1';
 }
 
-        function saveSettings() {
-            // Dummy implementation – simply alert that settings were saved.
-            alert("Settings saved!");
-        }
+function saveSettings() {
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
 
+    if (!currentPassword || !newPassword) {
+        alert('Please fill in both the current and new password fields.');
+        return;
+    }
+
+    fetch('/api/update_password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: localStorage.getItem('email'),
+            current_password: currentPassword,
+            new_password: newPassword
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Password updated successfully') {
+                alert('Password updated successfully!');
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+            } else {
+                alert(data.error || 'Error updating password.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating password:', error);
+            alert('An error occurred. Please try again.');
+        });
+}
         function createWorkersSkillSearch() {
             const nearbySection = document.getElementById('nearby-workers-section');
             if (!document.getElementById('workers-skill-search-container')) {
