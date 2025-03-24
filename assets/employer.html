@@ -1128,7 +1128,11 @@
                     </div>
                     <div class="info-field">
                         <div class="info-label">Status:</div>
-                        <div class="info-value"><span class="status-badge ${job.assigned ? 'status-filled' : 'status-open'}">${job.assigned ? 'Filled by ' + job.assigned_mail : 'Open'}</span></div>
+                        <div class="info-value">
+    <span class="status-badge ${job.assigned ? 'status-filled' : 'status-open'}">
+        ${job.assigned ? `Filled by ${job.assigned_mail}, ${job.assigned_phone || 'N/A'}` : 'Open'}
+    </span>
+</div>
                     </div>
                 `;
                 document.getElementById('job-modal').classList.add('show');

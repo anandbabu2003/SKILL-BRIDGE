@@ -194,13 +194,22 @@ def get_employee_job_unassigned():
                 results.append(result)
     return jsonify(results)
 
-
 @app.route("/api/job", methods=["GET"])
-def get_job_info():
+def get_job_details():
     job_id = request.args.get("id")
-    job = jobs_collection.find_one({"_id": ObjectId(job_id)}, {"_id": 0})
+    job = jobs_collection.find_one({"_id": ObjectId(job_id)})
+
     if not job:
         return jsonify({"error": "Job not found"}), 404
+
+    job["_id"] = str(job["_id"])  # Convert ObjectId to string
+
+    # If the job is assigned, include worker details
+    if job.get("assigned"):
+        worker = users_collection.find_one({"email": job.get("assigned_mail")})
+        if worker:
+            job["assigned_phone"] = worker.get("phone_no", "N/A")
+
     return jsonify(job)
 
 
