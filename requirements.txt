@@ -1,2 +1,5 @@
-flask
+Flask
 pymongo
+flask-cors
+flask-jwt-extended
+gunicorn
